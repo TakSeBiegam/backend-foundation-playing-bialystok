@@ -2,6 +2,7 @@ enum Role {
   ADMIN
   MODERATOR
   EDITOR
+  OWNER
 }
 
 type User {
@@ -36,11 +37,38 @@ type Partner {
   description: String
 }
 
+type ContactSubmissionNote {
+  id: ID!
+  submissionId: ID!
+  note: String!
+  author: User!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ContactSubmission {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  phone: String
+  message: String!
+  isRead: Boolean!
+  readAt: String
+  readBy: User
+  archived: Boolean!
+  lastNoteAt: String
+  notes: [ContactSubmissionNote!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
 type Query {
   events: [Event!]!
   event(id: ID!): Event
   partners: [Partner!]!
   partner(id: ID!): Partner
+  contactSubmissions(archived: Boolean = false): [ContactSubmission!]!
+  contactSubmission(id: ID!): ContactSubmission
   users: [User!]!
   me: User
 }
@@ -91,6 +119,19 @@ input CreateUserInput {
   password: String
 }
 
+input CreateContactSubmissionInput {
+  firstName: String!
+  lastName: String!
+  phone: String
+  message: String!
+}
+
+input AddContactSubmissionNoteInput {
+  submissionId: ID!
+  authorUserId: ID!
+  note: String!
+}
+
 input UpdateUserInput {
   email: String
   username: String
@@ -100,6 +141,17 @@ input UpdateUserInput {
 
 type Mutation {
   signIn(input: SignInInput!): AuthPayload!
+
+  createContactSubmission(
+    input: CreateContactSubmissionInput!
+  ): ContactSubmission!
+  markContactSubmissionRead(id: ID!, readerUserId: ID!): ContactSubmission!
+  markContactSubmissionUnread(id: ID!): ContactSubmission!
+  addContactSubmissionNote(
+    input: AddContactSubmissionNoteInput!
+  ): ContactSubmissionNote!
+
+  archiveContactSubmission(id: ID!, archived: Boolean!): ContactSubmission!
 
   createEvent(input: CreateEventInput!): Event!
   updateEvent(id: ID!, input: UpdateEventInput!): Event!

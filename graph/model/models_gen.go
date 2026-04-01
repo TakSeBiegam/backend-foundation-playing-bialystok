@@ -9,8 +9,46 @@ import (
 	"strconv"
 )
 
+type AddContactSubmissionNoteInput struct {
+	SubmissionID string `json:"submissionId"`
+	AuthorUserID string `json:"authorUserId"`
+	Note         string `json:"note"`
+}
+
 type AuthPayload struct {
 	User *User `json:"user"`
+}
+
+type ContactSubmission struct {
+	ID         string                   `json:"id"`
+	FirstName  string                   `json:"firstName"`
+	LastName   string                   `json:"lastName"`
+	Phone      *string                  `json:"phone,omitempty"`
+	Message    string                   `json:"message"`
+	IsRead     bool                     `json:"isRead"`
+	ReadAt     *string                  `json:"readAt,omitempty"`
+	ReadBy     *User                    `json:"readBy,omitempty"`
+	Archived   bool                     `json:"archived"`
+	LastNoteAt *string                  `json:"lastNoteAt,omitempty"`
+	Notes      []*ContactSubmissionNote `json:"notes"`
+	CreatedAt  string                   `json:"createdAt"`
+	UpdatedAt  string                   `json:"updatedAt"`
+}
+
+type ContactSubmissionNote struct {
+	ID           string `json:"id"`
+	SubmissionID string `json:"submissionId"`
+	Note         string `json:"note"`
+	Author       *User  `json:"author"`
+	CreatedAt    string `json:"createdAt"`
+	UpdatedAt    string `json:"updatedAt"`
+}
+
+type CreateContactSubmissionInput struct {
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	Phone     *string `json:"phone,omitempty"`
+	Message   string  `json:"message"`
 }
 
 type CreateEventInput struct {
@@ -106,17 +144,19 @@ const (
 	RoleAdmin     Role = "ADMIN"
 	RoleModerator Role = "MODERATOR"
 	RoleEditor    Role = "EDITOR"
+	RoleOwner     Role = "OWNER"
 )
 
 var AllRole = []Role{
 	RoleAdmin,
 	RoleModerator,
 	RoleEditor,
+	RoleOwner,
 }
 
 func (e Role) IsValid() bool {
 	switch e {
-	case RoleAdmin, RoleModerator, RoleEditor:
+	case RoleAdmin, RoleModerator, RoleEditor, RoleOwner:
 		return true
 	}
 	return false

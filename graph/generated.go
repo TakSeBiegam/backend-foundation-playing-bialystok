@@ -40,6 +40,31 @@ type ComplexityRoot struct {
 		User func(childComplexity int) int
 	}
 
+	ContactSubmission struct {
+		Archived   func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		FirstName  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		IsRead     func(childComplexity int) int
+		LastName   func(childComplexity int) int
+		LastNoteAt func(childComplexity int) int
+		Message    func(childComplexity int) int
+		Notes      func(childComplexity int) int
+		Phone      func(childComplexity int) int
+		ReadAt     func(childComplexity int) int
+		ReadBy     func(childComplexity int) int
+		UpdatedAt  func(childComplexity int) int
+	}
+
+	ContactSubmissionNote struct {
+		Author       func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Note         func(childComplexity int) int
+		SubmissionID func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
+	}
+
 	Event struct {
 		CreatedAt   func(childComplexity int) int
 		Date        func(childComplexity int) int
@@ -53,17 +78,22 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateEvent       func(childComplexity int, input model.CreateEventInput) int
-		CreatePartner     func(childComplexity int, input model.CreatePartnerInput) int
-		CreateUser        func(childComplexity int, input model.CreateUserInput) int
-		DeleteEvent       func(childComplexity int, id string) int
-		DeletePartner     func(childComplexity int, id string) int
-		DeleteUser        func(childComplexity int, id string) int
-		ResetUserPassword func(childComplexity int, id string) int
-		SignIn            func(childComplexity int, input model.SignInInput) int
-		UpdateEvent       func(childComplexity int, id string, input model.UpdateEventInput) int
-		UpdatePartner     func(childComplexity int, id string, input model.UpdatePartnerInput) int
-		UpdateUser        func(childComplexity int, id string, input model.UpdateUserInput) int
+		AddContactSubmissionNote    func(childComplexity int, input model.AddContactSubmissionNoteInput) int
+		ArchiveContactSubmission    func(childComplexity int, id string, archived bool) int
+		CreateContactSubmission     func(childComplexity int, input model.CreateContactSubmissionInput) int
+		CreateEvent                 func(childComplexity int, input model.CreateEventInput) int
+		CreatePartner               func(childComplexity int, input model.CreatePartnerInput) int
+		CreateUser                  func(childComplexity int, input model.CreateUserInput) int
+		DeleteEvent                 func(childComplexity int, id string) int
+		DeletePartner               func(childComplexity int, id string) int
+		DeleteUser                  func(childComplexity int, id string) int
+		MarkContactSubmissionRead   func(childComplexity int, id string, readerUserID string) int
+		MarkContactSubmissionUnread func(childComplexity int, id string) int
+		ResetUserPassword           func(childComplexity int, id string) int
+		SignIn                      func(childComplexity int, input model.SignInInput) int
+		UpdateEvent                 func(childComplexity int, id string, input model.UpdateEventInput) int
+		UpdatePartner               func(childComplexity int, id string, input model.UpdatePartnerInput) int
+		UpdateUser                  func(childComplexity int, id string, input model.UpdateUserInput) int
 	}
 
 	Partner struct {
@@ -75,12 +105,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Event    func(childComplexity int, id string) int
-		Events   func(childComplexity int) int
-		Me       func(childComplexity int) int
-		Partner  func(childComplexity int, id string) int
-		Partners func(childComplexity int) int
-		Users    func(childComplexity int) int
+		ContactSubmission  func(childComplexity int, id string) int
+		ContactSubmissions func(childComplexity int, archived *bool) int
+		Event              func(childComplexity int, id string) int
+		Events             func(childComplexity int) int
+		Me                 func(childComplexity int) int
+		Partner            func(childComplexity int, id string) int
+		Partners           func(childComplexity int) int
+		Users              func(childComplexity int) int
 	}
 
 	User struct {
@@ -94,6 +126,11 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	SignIn(ctx context.Context, input model.SignInInput) (*model.AuthPayload, error)
+	CreateContactSubmission(ctx context.Context, input model.CreateContactSubmissionInput) (*model.ContactSubmission, error)
+	MarkContactSubmissionRead(ctx context.Context, id string, readerUserID string) (*model.ContactSubmission, error)
+	MarkContactSubmissionUnread(ctx context.Context, id string) (*model.ContactSubmission, error)
+	AddContactSubmissionNote(ctx context.Context, input model.AddContactSubmissionNoteInput) (*model.ContactSubmissionNote, error)
+	ArchiveContactSubmission(ctx context.Context, id string, archived bool) (*model.ContactSubmission, error)
 	CreateEvent(ctx context.Context, input model.CreateEventInput) (*model.Event, error)
 	UpdateEvent(ctx context.Context, id string, input model.UpdateEventInput) (*model.Event, error)
 	DeleteEvent(ctx context.Context, id string) (bool, error)
@@ -110,6 +147,8 @@ type QueryResolver interface {
 	Event(ctx context.Context, id string) (*model.Event, error)
 	Partners(ctx context.Context) ([]*model.Partner, error)
 	Partner(ctx context.Context, id string) (*model.Partner, error)
+	ContactSubmissions(ctx context.Context, archived *bool) ([]*model.ContactSubmission, error)
+	ContactSubmission(ctx context.Context, id string) (*model.ContactSubmission, error)
 	Users(ctx context.Context) ([]*model.User, error)
 	Me(ctx context.Context) (*model.User, error)
 }
@@ -134,6 +173,122 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.AuthPayload.User(childComplexity), true
+
+	case "ContactSubmission.archived":
+		if e.ComplexityRoot.ContactSubmission.Archived == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.Archived(childComplexity), true
+	case "ContactSubmission.createdAt":
+		if e.ComplexityRoot.ContactSubmission.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.CreatedAt(childComplexity), true
+	case "ContactSubmission.firstName":
+		if e.ComplexityRoot.ContactSubmission.FirstName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.FirstName(childComplexity), true
+	case "ContactSubmission.id":
+		if e.ComplexityRoot.ContactSubmission.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.ID(childComplexity), true
+	case "ContactSubmission.isRead":
+		if e.ComplexityRoot.ContactSubmission.IsRead == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.IsRead(childComplexity), true
+	case "ContactSubmission.lastName":
+		if e.ComplexityRoot.ContactSubmission.LastName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.LastName(childComplexity), true
+	case "ContactSubmission.lastNoteAt":
+		if e.ComplexityRoot.ContactSubmission.LastNoteAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.LastNoteAt(childComplexity), true
+	case "ContactSubmission.message":
+		if e.ComplexityRoot.ContactSubmission.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.Message(childComplexity), true
+	case "ContactSubmission.notes":
+		if e.ComplexityRoot.ContactSubmission.Notes == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.Notes(childComplexity), true
+	case "ContactSubmission.phone":
+		if e.ComplexityRoot.ContactSubmission.Phone == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.Phone(childComplexity), true
+	case "ContactSubmission.readAt":
+		if e.ComplexityRoot.ContactSubmission.ReadAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.ReadAt(childComplexity), true
+	case "ContactSubmission.readBy":
+		if e.ComplexityRoot.ContactSubmission.ReadBy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.ReadBy(childComplexity), true
+	case "ContactSubmission.updatedAt":
+		if e.ComplexityRoot.ContactSubmission.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmission.UpdatedAt(childComplexity), true
+
+	case "ContactSubmissionNote.author":
+		if e.ComplexityRoot.ContactSubmissionNote.Author == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmissionNote.Author(childComplexity), true
+	case "ContactSubmissionNote.createdAt":
+		if e.ComplexityRoot.ContactSubmissionNote.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmissionNote.CreatedAt(childComplexity), true
+	case "ContactSubmissionNote.id":
+		if e.ComplexityRoot.ContactSubmissionNote.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmissionNote.ID(childComplexity), true
+	case "ContactSubmissionNote.note":
+		if e.ComplexityRoot.ContactSubmissionNote.Note == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmissionNote.Note(childComplexity), true
+	case "ContactSubmissionNote.submissionId":
+		if e.ComplexityRoot.ContactSubmissionNote.SubmissionID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmissionNote.SubmissionID(childComplexity), true
+	case "ContactSubmissionNote.updatedAt":
+		if e.ComplexityRoot.ContactSubmissionNote.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ContactSubmissionNote.UpdatedAt(childComplexity), true
 
 	case "Event.createdAt":
 		if e.ComplexityRoot.Event.CreatedAt == nil {
@@ -190,6 +345,39 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Event.Title(childComplexity), true
 
+	case "Mutation.addContactSubmissionNote":
+		if e.ComplexityRoot.Mutation.AddContactSubmissionNote == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addContactSubmissionNote_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.AddContactSubmissionNote(childComplexity, args["input"].(model.AddContactSubmissionNoteInput)), true
+	case "Mutation.archiveContactSubmission":
+		if e.ComplexityRoot.Mutation.ArchiveContactSubmission == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_archiveContactSubmission_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ArchiveContactSubmission(childComplexity, args["id"].(string), args["archived"].(bool)), true
+	case "Mutation.createContactSubmission":
+		if e.ComplexityRoot.Mutation.CreateContactSubmission == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createContactSubmission_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreateContactSubmission(childComplexity, args["input"].(model.CreateContactSubmissionInput)), true
 	case "Mutation.createEvent":
 		if e.ComplexityRoot.Mutation.CreateEvent == nil {
 			break
@@ -256,6 +444,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.DeleteUser(childComplexity, args["id"].(string)), true
+	case "Mutation.markContactSubmissionRead":
+		if e.ComplexityRoot.Mutation.MarkContactSubmissionRead == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markContactSubmissionRead_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.MarkContactSubmissionRead(childComplexity, args["id"].(string), args["readerUserId"].(string)), true
+	case "Mutation.markContactSubmissionUnread":
+		if e.ComplexityRoot.Mutation.MarkContactSubmissionUnread == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markContactSubmissionUnread_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.MarkContactSubmissionUnread(childComplexity, args["id"].(string)), true
 	case "Mutation.resetUserPassword":
 		if e.ComplexityRoot.Mutation.ResetUserPassword == nil {
 			break
@@ -343,6 +553,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Partner.WebsiteURL(childComplexity), true
 
+	case "Query.contactSubmission":
+		if e.ComplexityRoot.Query.ContactSubmission == nil {
+			break
+		}
+
+		args, err := ec.field_Query_contactSubmission_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.ContactSubmission(childComplexity, args["id"].(string)), true
+	case "Query.contactSubmissions":
+		if e.ComplexityRoot.Query.ContactSubmissions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_contactSubmissions_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.ContactSubmissions(childComplexity, args["archived"].(*bool)), true
 	case "Query.event":
 		if e.ComplexityRoot.Query.Event == nil {
 			break
@@ -430,6 +662,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAddContactSubmissionNoteInput,
+		ec.unmarshalInputCreateContactSubmissionInput,
 		ec.unmarshalInputCreateEventInput,
 		ec.unmarshalInputCreatePartnerInput,
 		ec.unmarshalInputCreateUserInput,
@@ -531,6 +765,44 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_addContactSubmissionNote_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNAddContactSubmissionNoteInput2backendᚋgraphᚋmodelᚐAddContactSubmissionNoteInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_archiveContactSubmission_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "archived", ec.unmarshalNBoolean2bool)
+	if err != nil {
+		return nil, err
+	}
+	args["archived"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createContactSubmission_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateContactSubmissionInput2backendᚋgraphᚋmodelᚐCreateContactSubmissionInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createEvent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -587,6 +859,33 @@ func (ec *executionContext) field_Mutation_deletePartner_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markContactSubmissionRead_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "readerUserId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["readerUserId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markContactSubmissionUnread_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -675,6 +974,28 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_contactSubmission_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_contactSubmissions_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "archived", ec.unmarshalOBoolean2ᚖbool)
+	if err != nil {
+		return nil, err
+	}
+	args["archived"] = arg0
 	return args, nil
 }
 
@@ -788,6 +1109,595 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 				return ec.fieldContext_User_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_id(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_firstName(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_firstName,
+		func(ctx context.Context) (any, error) {
+			return obj.FirstName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_firstName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_lastName(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_lastName,
+		func(ctx context.Context) (any, error) {
+			return obj.LastName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_lastName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_phone(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_phone,
+		func(ctx context.Context) (any, error) {
+			return obj.Phone, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_phone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_message(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_isRead(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_isRead,
+		func(ctx context.Context) (any, error) {
+			return obj.IsRead, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_isRead(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_readAt(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_readAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ReadAt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_readAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_readBy(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_readBy,
+		func(ctx context.Context) (any, error) {
+			return obj.ReadBy, nil
+		},
+		nil,
+		ec.marshalOUser2ᚖbackendᚋgraphᚋmodelᚐUser,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_readBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_archived(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_archived,
+		func(ctx context.Context) (any, error) {
+			return obj.Archived, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_archived(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_lastNoteAt(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_lastNoteAt,
+		func(ctx context.Context) (any, error) {
+			return obj.LastNoteAt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_lastNoteAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_notes(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_notes,
+		func(ctx context.Context) (any, error) {
+			return obj.Notes, nil
+		},
+		nil,
+		ec.marshalNContactSubmissionNote2ᚕᚖbackendᚋgraphᚋmodelᚐContactSubmissionNoteᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_notes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmissionNote_id(ctx, field)
+			case "submissionId":
+				return ec.fieldContext_ContactSubmissionNote_submissionId(ctx, field)
+			case "note":
+				return ec.fieldContext_ContactSubmissionNote_note(ctx, field)
+			case "author":
+				return ec.fieldContext_ContactSubmissionNote_author(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmissionNote_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmissionNote_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmissionNote", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmission_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmission_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmission_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmissionNote_id(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmissionNote) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmissionNote_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmissionNote_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmissionNote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmissionNote_submissionId(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmissionNote) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmissionNote_submissionId,
+		func(ctx context.Context) (any, error) {
+			return obj.SubmissionID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmissionNote_submissionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmissionNote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmissionNote_note(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmissionNote) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmissionNote_note,
+		func(ctx context.Context) (any, error) {
+			return obj.Note, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmissionNote_note(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmissionNote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmissionNote_author(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmissionNote) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmissionNote_author,
+		func(ctx context.Context) (any, error) {
+			return obj.Author, nil
+		},
+		nil,
+		ec.marshalNUser2ᚖbackendᚋgraphᚋmodelᚐUser,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmissionNote_author(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmissionNote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmissionNote_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmissionNote) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmissionNote_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmissionNote_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmissionNote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContactSubmissionNote_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.ContactSubmissionNote) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ContactSubmissionNote_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ContactSubmissionNote_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContactSubmissionNote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1093,6 +2003,337 @@ func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_signIn_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createContactSubmission(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createContactSubmission,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreateContactSubmission(ctx, fc.Args["input"].(model.CreateContactSubmissionInput))
+		},
+		nil,
+		ec.marshalNContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createContactSubmission(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmission_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_ContactSubmission_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_ContactSubmission_lastName(ctx, field)
+			case "phone":
+				return ec.fieldContext_ContactSubmission_phone(ctx, field)
+			case "message":
+				return ec.fieldContext_ContactSubmission_message(ctx, field)
+			case "isRead":
+				return ec.fieldContext_ContactSubmission_isRead(ctx, field)
+			case "readAt":
+				return ec.fieldContext_ContactSubmission_readAt(ctx, field)
+			case "readBy":
+				return ec.fieldContext_ContactSubmission_readBy(ctx, field)
+			case "archived":
+				return ec.fieldContext_ContactSubmission_archived(ctx, field)
+			case "lastNoteAt":
+				return ec.fieldContext_ContactSubmission_lastNoteAt(ctx, field)
+			case "notes":
+				return ec.fieldContext_ContactSubmission_notes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmission_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmission_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createContactSubmission_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_markContactSubmissionRead(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_markContactSubmissionRead,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().MarkContactSubmissionRead(ctx, fc.Args["id"].(string), fc.Args["readerUserId"].(string))
+		},
+		nil,
+		ec.marshalNContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_markContactSubmissionRead(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmission_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_ContactSubmission_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_ContactSubmission_lastName(ctx, field)
+			case "phone":
+				return ec.fieldContext_ContactSubmission_phone(ctx, field)
+			case "message":
+				return ec.fieldContext_ContactSubmission_message(ctx, field)
+			case "isRead":
+				return ec.fieldContext_ContactSubmission_isRead(ctx, field)
+			case "readAt":
+				return ec.fieldContext_ContactSubmission_readAt(ctx, field)
+			case "readBy":
+				return ec.fieldContext_ContactSubmission_readBy(ctx, field)
+			case "archived":
+				return ec.fieldContext_ContactSubmission_archived(ctx, field)
+			case "lastNoteAt":
+				return ec.fieldContext_ContactSubmission_lastNoteAt(ctx, field)
+			case "notes":
+				return ec.fieldContext_ContactSubmission_notes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmission_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmission_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_markContactSubmissionRead_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_markContactSubmissionUnread(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_markContactSubmissionUnread,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().MarkContactSubmissionUnread(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_markContactSubmissionUnread(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmission_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_ContactSubmission_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_ContactSubmission_lastName(ctx, field)
+			case "phone":
+				return ec.fieldContext_ContactSubmission_phone(ctx, field)
+			case "message":
+				return ec.fieldContext_ContactSubmission_message(ctx, field)
+			case "isRead":
+				return ec.fieldContext_ContactSubmission_isRead(ctx, field)
+			case "readAt":
+				return ec.fieldContext_ContactSubmission_readAt(ctx, field)
+			case "readBy":
+				return ec.fieldContext_ContactSubmission_readBy(ctx, field)
+			case "archived":
+				return ec.fieldContext_ContactSubmission_archived(ctx, field)
+			case "lastNoteAt":
+				return ec.fieldContext_ContactSubmission_lastNoteAt(ctx, field)
+			case "notes":
+				return ec.fieldContext_ContactSubmission_notes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmission_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmission_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_markContactSubmissionUnread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addContactSubmissionNote(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_addContactSubmissionNote,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().AddContactSubmissionNote(ctx, fc.Args["input"].(model.AddContactSubmissionNoteInput))
+		},
+		nil,
+		ec.marshalNContactSubmissionNote2ᚖbackendᚋgraphᚋmodelᚐContactSubmissionNote,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addContactSubmissionNote(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmissionNote_id(ctx, field)
+			case "submissionId":
+				return ec.fieldContext_ContactSubmissionNote_submissionId(ctx, field)
+			case "note":
+				return ec.fieldContext_ContactSubmissionNote_note(ctx, field)
+			case "author":
+				return ec.fieldContext_ContactSubmissionNote_author(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmissionNote_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmissionNote_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmissionNote", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addContactSubmissionNote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_archiveContactSubmission(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_archiveContactSubmission,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ArchiveContactSubmission(ctx, fc.Args["id"].(string), fc.Args["archived"].(bool))
+		},
+		nil,
+		ec.marshalNContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_archiveContactSubmission(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmission_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_ContactSubmission_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_ContactSubmission_lastName(ctx, field)
+			case "phone":
+				return ec.fieldContext_ContactSubmission_phone(ctx, field)
+			case "message":
+				return ec.fieldContext_ContactSubmission_message(ctx, field)
+			case "isRead":
+				return ec.fieldContext_ContactSubmission_isRead(ctx, field)
+			case "readAt":
+				return ec.fieldContext_ContactSubmission_readAt(ctx, field)
+			case "readBy":
+				return ec.fieldContext_ContactSubmission_readBy(ctx, field)
+			case "archived":
+				return ec.fieldContext_ContactSubmission_archived(ctx, field)
+			case "lastNoteAt":
+				return ec.fieldContext_ContactSubmission_lastNoteAt(ctx, field)
+			case "notes":
+				return ec.fieldContext_ContactSubmission_notes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmission_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmission_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_archiveContactSubmission_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -1940,6 +3181,144 @@ func (ec *executionContext) fieldContext_Query_partner(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_partner_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_contactSubmissions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_contactSubmissions,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().ContactSubmissions(ctx, fc.Args["archived"].(*bool))
+		},
+		nil,
+		ec.marshalNContactSubmission2ᚕᚖbackendᚋgraphᚋmodelᚐContactSubmissionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_contactSubmissions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmission_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_ContactSubmission_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_ContactSubmission_lastName(ctx, field)
+			case "phone":
+				return ec.fieldContext_ContactSubmission_phone(ctx, field)
+			case "message":
+				return ec.fieldContext_ContactSubmission_message(ctx, field)
+			case "isRead":
+				return ec.fieldContext_ContactSubmission_isRead(ctx, field)
+			case "readAt":
+				return ec.fieldContext_ContactSubmission_readAt(ctx, field)
+			case "readBy":
+				return ec.fieldContext_ContactSubmission_readBy(ctx, field)
+			case "archived":
+				return ec.fieldContext_ContactSubmission_archived(ctx, field)
+			case "lastNoteAt":
+				return ec.fieldContext_ContactSubmission_lastNoteAt(ctx, field)
+			case "notes":
+				return ec.fieldContext_ContactSubmission_notes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmission_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmission_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_contactSubmissions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_contactSubmission(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_contactSubmission,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().ContactSubmission(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalOContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_contactSubmission(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ContactSubmission_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_ContactSubmission_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_ContactSubmission_lastName(ctx, field)
+			case "phone":
+				return ec.fieldContext_ContactSubmission_phone(ctx, field)
+			case "message":
+				return ec.fieldContext_ContactSubmission_message(ctx, field)
+			case "isRead":
+				return ec.fieldContext_ContactSubmission_isRead(ctx, field)
+			case "readAt":
+				return ec.fieldContext_ContactSubmission_readAt(ctx, field)
+			case "readBy":
+				return ec.fieldContext_ContactSubmission_readBy(ctx, field)
+			case "archived":
+				return ec.fieldContext_ContactSubmission_archived(ctx, field)
+			case "lastNoteAt":
+				return ec.fieldContext_ContactSubmission_lastNoteAt(ctx, field)
+			case "notes":
+				return ec.fieldContext_ContactSubmission_notes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ContactSubmission_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ContactSubmission_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContactSubmission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_contactSubmission_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3727,6 +5106,101 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAddContactSubmissionNoteInput(ctx context.Context, obj any) (model.AddContactSubmissionNoteInput, error) {
+	var it model.AddContactSubmissionNoteInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"submissionId", "authorUserId", "note"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "submissionId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("submissionId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SubmissionID = data
+		case "authorUserId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorUserId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorUserID = data
+		case "note":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Note = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateContactSubmissionInput(ctx context.Context, obj any) (model.CreateContactSubmissionInput, error) {
+	var it model.CreateContactSubmissionInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"firstName", "lastName", "phone", "message"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "firstName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirstName = data
+		case "lastName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastName = data
+		case "phone":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Phone = data
+		case "message":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Message = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateEventInput(ctx context.Context, obj any) (model.CreateEventInput, error) {
 	var it model.CreateEventInput
 	if obj == nil {
@@ -4159,6 +5633,157 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var contactSubmissionImplementors = []string{"ContactSubmission"}
+
+func (ec *executionContext) _ContactSubmission(ctx context.Context, sel ast.SelectionSet, obj *model.ContactSubmission) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, contactSubmissionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ContactSubmission")
+		case "id":
+			out.Values[i] = ec._ContactSubmission_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "firstName":
+			out.Values[i] = ec._ContactSubmission_firstName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastName":
+			out.Values[i] = ec._ContactSubmission_lastName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "phone":
+			out.Values[i] = ec._ContactSubmission_phone(ctx, field, obj)
+		case "message":
+			out.Values[i] = ec._ContactSubmission_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isRead":
+			out.Values[i] = ec._ContactSubmission_isRead(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "readAt":
+			out.Values[i] = ec._ContactSubmission_readAt(ctx, field, obj)
+		case "readBy":
+			out.Values[i] = ec._ContactSubmission_readBy(ctx, field, obj)
+		case "archived":
+			out.Values[i] = ec._ContactSubmission_archived(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastNoteAt":
+			out.Values[i] = ec._ContactSubmission_lastNoteAt(ctx, field, obj)
+		case "notes":
+			out.Values[i] = ec._ContactSubmission_notes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._ContactSubmission_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._ContactSubmission_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var contactSubmissionNoteImplementors = []string{"ContactSubmissionNote"}
+
+func (ec *executionContext) _ContactSubmissionNote(ctx context.Context, sel ast.SelectionSet, obj *model.ContactSubmissionNote) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, contactSubmissionNoteImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ContactSubmissionNote")
+		case "id":
+			out.Values[i] = ec._ContactSubmissionNote_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "submissionId":
+			out.Values[i] = ec._ContactSubmissionNote_submissionId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "note":
+			out.Values[i] = ec._ContactSubmissionNote_note(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "author":
+			out.Values[i] = ec._ContactSubmissionNote_author(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._ContactSubmissionNote_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._ContactSubmissionNote_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var eventImplementors = []string{"Event"}
 
 func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, obj *model.Event) graphql.Marshaler {
@@ -4245,6 +5870,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "signIn":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_signIn(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createContactSubmission":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createContactSubmission(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "markContactSubmissionRead":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_markContactSubmissionRead(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "markContactSubmissionUnread":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_markContactSubmissionUnread(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addContactSubmissionNote":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addContactSubmissionNote(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "archiveContactSubmission":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_archiveContactSubmission(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -4484,6 +6144,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_partner(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "contactSubmissions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_contactSubmissions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "contactSubmission":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_contactSubmission(ctx, field)
 				return res
 			}
 
@@ -4953,6 +6654,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNAddContactSubmissionNoteInput2backendᚋgraphᚋmodelᚐAddContactSubmissionNoteInput(ctx context.Context, v any) (model.AddContactSubmissionNoteInput, error) {
+	res, err := ec.unmarshalInputAddContactSubmissionNoteInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNAuthPayload2backendᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v model.AuthPayload) graphql.Marshaler {
 	return ec._AuthPayload(ctx, sel, &v)
 }
@@ -4981,6 +6687,71 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNContactSubmission2backendᚋgraphᚋmodelᚐContactSubmission(ctx context.Context, sel ast.SelectionSet, v model.ContactSubmission) graphql.Marshaler {
+	return ec._ContactSubmission(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNContactSubmission2ᚕᚖbackendᚋgraphᚋmodelᚐContactSubmissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ContactSubmission) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission(ctx context.Context, sel ast.SelectionSet, v *model.ContactSubmission) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ContactSubmission(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNContactSubmissionNote2backendᚋgraphᚋmodelᚐContactSubmissionNote(ctx context.Context, sel ast.SelectionSet, v model.ContactSubmissionNote) graphql.Marshaler {
+	return ec._ContactSubmissionNote(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNContactSubmissionNote2ᚕᚖbackendᚋgraphᚋmodelᚐContactSubmissionNoteᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ContactSubmissionNote) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNContactSubmissionNote2ᚖbackendᚋgraphᚋmodelᚐContactSubmissionNote(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNContactSubmissionNote2ᚖbackendᚋgraphᚋmodelᚐContactSubmissionNote(ctx context.Context, sel ast.SelectionSet, v *model.ContactSubmissionNote) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ContactSubmissionNote(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCreateContactSubmissionInput2backendᚋgraphᚋmodelᚐCreateContactSubmissionInput(ctx context.Context, v any) (model.CreateContactSubmissionInput, error) {
+	res, err := ec.unmarshalInputCreateContactSubmissionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNCreateEventInput2backendᚋgraphᚋmodelᚐCreateEventInput(ctx context.Context, v any) (model.CreateEventInput, error) {
@@ -5319,6 +7090,13 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOContactSubmission2ᚖbackendᚋgraphᚋmodelᚐContactSubmission(ctx context.Context, sel ast.SelectionSet, v *model.ContactSubmission) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ContactSubmission(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOEvent2ᚖbackendᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {

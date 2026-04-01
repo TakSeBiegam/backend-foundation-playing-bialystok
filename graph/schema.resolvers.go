@@ -9,45 +9,10 @@ import (
 	"backend/graph/model"
 	"context"
 	"fmt"
-	"math/rand"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-// ──────────────────────────────────────────────────────────────────
-//  Helpers
-// ──────────────────────────────────────────────────────────────────
-
-func roleFromDB(r string) model.Role {
-	switch strings.ToLower(r) {
-	case "admin":
-		return model.RoleAdmin
-	case "moderator":
-		return model.RoleModerator
-	default:
-		return model.RoleEditor
-	}
-}
-
-func roleToDB(r model.Role) string {
-	return strings.ToLower(string(r))
-}
-
-const passwordCharset = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"
-
-func randomPassword(length int) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = passwordCharset[rand.Intn(len(passwordCharset))]
-	}
-	return string(b)
-}
-
-// ──────────────────────────────────────────────────────────────────
-//  Auth
-// ──────────────────────────────────────────────────────────────────
 
 // SignIn is the resolver for the signIn field.
 func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) (*model.AuthPayload, error) {
@@ -79,9 +44,38 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 	}, nil
 }
 
-// ──────────────────────────────────────────────────────────────────
-//  Events
-// ──────────────────────────────────────────────────────────────────
+// CreateContactSubmission is the resolver for the createContactSubmission field.
+func (r *mutationResolver) CreateContactSubmission(ctx context.Context, input model.CreateContactSubmissionInput) (*model.ContactSubmission, error) {
+	panic(fmt.Errorf("not implemented: CreateContactSubmission - createContactSubmission"))
+}
+
+// MarkContactSubmissionRead is the resolver for the markContactSubmissionRead field.
+func (r *mutationResolver) MarkContactSubmissionRead(ctx context.Context, id string, readerUserID string) (*model.ContactSubmission, error) {
+	panic(fmt.Errorf("not implemented: MarkContactSubmissionRead - markContactSubmissionRead"))
+}
+
+// MarkContactSubmissionUnread is the resolver for the markContactSubmissionUnread field.
+func (r *mutationResolver) MarkContactSubmissionUnread(ctx context.Context, id string) (*model.ContactSubmission, error) {
+	panic(fmt.Errorf("not implemented: MarkContactSubmissionUnread - markContactSubmissionUnread"))
+}
+
+// AddContactSubmissionNote is the resolver for the addContactSubmissionNote field.
+func (r *mutationResolver) AddContactSubmissionNote(ctx context.Context, input model.AddContactSubmissionNoteInput) (*model.ContactSubmissionNote, error) {
+	panic(fmt.Errorf("not implemented: AddContactSubmissionNote - addContactSubmissionNote"))
+}
+
+// ArchiveContactSubmission is the resolver for the archiveContactSubmission field.
+func (r *mutationResolver) ArchiveContactSubmission(ctx context.Context, id string, archived bool) (*model.ContactSubmission, error) {
+	_, err := r.DB.Exec(ctx,
+		`UPDATE contact_submissions SET archived = $1, updated_at = NOW() WHERE id = $2`,
+		archived, id,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("archive contact submission: %w", err)
+	}
+
+	return r.getContactSubmissionByID(ctx, id, true)
+}
 
 // CreateEvent is the resolver for the createEvent field.
 func (r *mutationResolver) CreateEvent(ctx context.Context, input model.CreateEventInput) (*model.Event, error) {
@@ -139,39 +133,6 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, id string) (bool, er
 	return tag.RowsAffected() > 0, nil
 }
 
-// Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
-	rows, err := r.DB.Query(ctx,
-		`SELECT id, title, description, date, location, time, facebook_url, image_url, created_at
-		 FROM events ORDER BY date DESC`)
-	if err != nil {
-		return nil, fmt.Errorf("list events: %w", err)
-	}
-	defer rows.Close()
-
-	var events []*model.Event
-	for rows.Next() {
-		e, err := scanEventRow(rows)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, e)
-	}
-	return events, nil
-}
-
-// Event is the resolver for the event field.
-func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
-	row := r.DB.QueryRow(ctx,
-		`SELECT id, title, description, date, location, time, facebook_url, image_url, created_at
-		 FROM events WHERE id = $1`, id)
-	return scanEvent(row)
-}
-
-// ──────────────────────────────────────────────────────────────────
-//  Partners
-// ──────────────────────────────────────────────────────────────────
-
 // CreatePartner is the resolver for the createPartner field.
 func (r *mutationResolver) CreatePartner(ctx context.Context, input model.CreatePartnerInput) (*model.Partner, error) {
 	var id string
@@ -216,37 +177,6 @@ func (r *mutationResolver) DeletePartner(ctx context.Context, id string) (bool, 
 	}
 	return tag.RowsAffected() > 0, nil
 }
-
-// Partners is the resolver for the partners field.
-func (r *queryResolver) Partners(ctx context.Context) ([]*model.Partner, error) {
-	rows, err := r.DB.Query(ctx,
-		`SELECT id, name, logo_url, website_url, description FROM partners ORDER BY name`)
-	if err != nil {
-		return nil, fmt.Errorf("list partners: %w", err)
-	}
-	defer rows.Close()
-
-	var partners []*model.Partner
-	for rows.Next() {
-		p, err := scanPartnerRow(rows)
-		if err != nil {
-			return nil, err
-		}
-		partners = append(partners, p)
-	}
-	return partners, nil
-}
-
-// Partner is the resolver for the partner field.
-func (r *queryResolver) Partner(ctx context.Context, id string) (*model.Partner, error) {
-	row := r.DB.QueryRow(ctx,
-		`SELECT id, name, logo_url, website_url, description FROM partners WHERE id = $1`, id)
-	return scanPartner(row)
-}
-
-// ──────────────────────────────────────────────────────────────────
-//  Users
-// ──────────────────────────────────────────────────────────────────
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
@@ -340,6 +270,135 @@ func (r *mutationResolver) ResetUserPassword(ctx context.Context, id string) (st
 	return plain, nil
 }
 
+// Events is the resolver for the events field.
+func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
+	rows, err := r.DB.Query(ctx,
+		`SELECT id, title, description, date, location, time, facebook_url, image_url, created_at
+		 FROM events ORDER BY date DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("list events: %w", err)
+	}
+	defer rows.Close()
+
+	var events []*model.Event
+	for rows.Next() {
+		e, err := scanEventRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, e)
+	}
+	return events, nil
+}
+
+// Event is the resolver for the event field.
+func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
+	row := r.DB.QueryRow(ctx,
+		`SELECT id, title, description, date, location, time, facebook_url, image_url, created_at
+		 FROM events WHERE id = $1`, id)
+	return scanEvent(row)
+}
+
+// Partners is the resolver for the partners field.
+func (r *queryResolver) Partners(ctx context.Context) ([]*model.Partner, error) {
+	rows, err := r.DB.Query(ctx,
+		`SELECT id, name, logo_url, website_url, description FROM partners ORDER BY name`)
+	if err != nil {
+		return nil, fmt.Errorf("list partners: %w", err)
+	}
+	defer rows.Close()
+
+	var partners []*model.Partner
+	for rows.Next() {
+		p, err := scanPartnerRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		partners = append(partners, p)
+	}
+	return partners, nil
+}
+
+// Partner is the resolver for the partner field.
+func (r *queryResolver) Partner(ctx context.Context, id string) (*model.Partner, error) {
+	row := r.DB.QueryRow(ctx,
+		`SELECT id, name, logo_url, website_url, description FROM partners WHERE id = $1`, id)
+	return scanPartner(row)
+}
+
+// ContactSubmissions is the resolver for the contactSubmissions field.
+func (r *queryResolver) ContactSubmissions(ctx context.Context, archived *bool) ([]*model.ContactSubmission, error) {
+	a := false
+	if archived != nil {
+		a = *archived
+	}
+
+	rows, err := r.DB.Query(ctx,
+		`SELECT id, first_name, last_name, phone, message, is_read, read_at, read_by_user_id, archived, last_note_at, created_at, updated_at
+		 FROM contact_submissions WHERE archived = $1 ORDER BY created_at DESC`,
+		a,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list contact submissions: %w", err)
+	}
+	defer rows.Close()
+
+	var items []*model.ContactSubmission
+	for rows.Next() {
+		var item model.ContactSubmission
+		var readAt *time.Time
+		var readByUserID *string
+		var createdAt, updatedAt time.Time
+		var lastNoteAt *time.Time
+
+		if err := rows.Scan(
+			&item.ID,
+			&item.FirstName,
+			&item.LastName,
+			&item.Phone,
+			&item.Message,
+			&item.IsRead,
+			&readAt,
+			&readByUserID,
+			&item.Archived,
+			&lastNoteAt,
+			&createdAt,
+			&updatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan contact submission: %w", err)
+		}
+
+		if readAt != nil {
+			t := readAt.Format(time.RFC3339)
+			item.ReadAt = &t
+		}
+		if readByUserID != nil {
+			reader, err := r.getUserByID(ctx, *readByUserID)
+			if err != nil {
+				return nil, err
+			}
+			item.ReadBy = reader
+		}
+
+		item.CreatedAt = createdAt.Format(time.RFC3339)
+		item.UpdatedAt = updatedAt.Format(time.RFC3339)
+		if lastNoteAt != nil {
+			s := lastNoteAt.Format(time.RFC3339)
+			item.LastNoteAt = &s
+		}
+		item.Notes = []*model.ContactSubmissionNote{}
+
+		items = append(items, &item)
+	}
+
+	return items, nil
+}
+
+// ContactSubmission is the resolver for the contactSubmission field.
+func (r *queryResolver) ContactSubmission(ctx context.Context, id string) (*model.ContactSubmission, error) {
+	return r.getContactSubmissionByID(ctx, id, true)
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	rows, err := r.DB.Query(ctx,
@@ -365,14 +424,46 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	return nil, nil
 }
 
-// ──────────────────────────────────────────────────────────────────
-//  Row scanners (avoid repetition)
-// ──────────────────────────────────────────────────────────────────
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
+// Query returns QueryResolver implementation.
+func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+
+type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func roleFromDB(r string) model.Role {
+	switch strings.ToLower(r) {
+	case "admin":
+		return model.RoleAdmin
+	case "moderator":
+		return model.RoleModerator
+	default:
+		return model.RoleEditor
+	}
+}
+func roleToDB(r model.Role) string {
+	return strings.ToLower(string(r))
+}
+const passwordCharset = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"
+func randomPassword(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = passwordCharset[rand.Intn(len(passwordCharset))]
+	}
+	return string(b)
+}
 type rowScanner interface {
 	Scan(dest ...any) error
 }
-
 func scanEvent(row rowScanner) (*model.Event, error) {
 	var e model.Event
 	var date time.Time
@@ -384,15 +475,12 @@ func scanEvent(row rowScanner) (*model.Event, error) {
 	e.CreatedAt = createdAt.Format(time.RFC3339)
 	return &e, nil
 }
-
 type pgxRows interface {
 	Scan(dest ...any) error
 }
-
 func scanEventRow(row pgxRows) (*model.Event, error) {
 	return scanEvent(row)
 }
-
 func scanPartner(row rowScanner) (*model.Partner, error) {
 	var p model.Partner
 	if err := row.Scan(&p.ID, &p.Name, &p.LogoURL, &p.WebsiteURL, &p.Description); err != nil {
@@ -400,11 +488,9 @@ func scanPartner(row rowScanner) (*model.Partner, error) {
 	}
 	return &p, nil
 }
-
 func scanPartnerRow(row pgxRows) (*model.Partner, error) {
 	return scanPartner(row)
 }
-
 func scanUser(row rowScanner) (*model.User, error) {
 	var u model.User
 	var dbRole string
@@ -416,20 +502,7 @@ func scanUser(row rowScanner) (*model.User, error) {
 	u.CreatedAt = createdAt.Format(time.RFC3339)
 	return &u, nil
 }
-
 func scanUserRow(row pgxRows) (*model.User, error) {
 	return scanUser(row)
 }
-
-// ──────────────────────────────────────────────────────────────────
-//  Resolver roots
-// ──────────────────────────────────────────────────────────────────
-
-// Mutation returns MutationResolver implementation.
-func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
-
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
+*/
