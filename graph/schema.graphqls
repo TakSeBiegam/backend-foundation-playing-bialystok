@@ -1,0 +1,116 @@
+enum Role {
+  ADMIN
+  MODERATOR
+  EDITOR
+}
+
+type User {
+  id: ID!
+  email: String
+  username: String
+  role: Role!
+  createdAt: String!
+}
+
+type AuthPayload {
+  user: User!
+}
+
+type Event {
+  id: ID!
+  title: String!
+  description: String
+  date: String!
+  location: String
+  time: String
+  facebookUrl: String
+  imageUrl: String
+  createdAt: String!
+}
+
+type Partner {
+  id: ID!
+  name: String!
+  logoUrl: String
+  websiteUrl: String
+  description: String
+}
+
+type Query {
+  events: [Event!]!
+  event(id: ID!): Event
+  partners: [Partner!]!
+  partner(id: ID!): Partner
+  users: [User!]!
+  me: User
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}
+
+input CreateEventInput {
+  title: String!
+  description: String
+  date: String!
+  location: String
+  time: String
+  facebookUrl: String
+  imageUrl: String
+}
+
+input UpdateEventInput {
+  title: String
+  description: String
+  date: String
+  location: String
+  time: String
+  facebookUrl: String
+  imageUrl: String
+}
+
+input CreatePartnerInput {
+  name: String!
+  logoUrl: String
+  websiteUrl: String
+  description: String
+}
+
+input UpdatePartnerInput {
+  name: String
+  logoUrl: String
+  websiteUrl: String
+  description: String
+}
+
+input CreateUserInput {
+  email: String
+  username: String
+  role: Role!
+  password: String
+}
+
+input UpdateUserInput {
+  email: String
+  username: String
+  role: Role
+  password: String
+}
+
+type Mutation {
+  signIn(input: SignInInput!): AuthPayload!
+
+  createEvent(input: CreateEventInput!): Event!
+  updateEvent(id: ID!, input: UpdateEventInput!): Event!
+  deleteEvent(id: ID!): Boolean!
+
+  createPartner(input: CreatePartnerInput!): Partner!
+  updatePartner(id: ID!, input: UpdatePartnerInput!): Partner!
+  deletePartner(id: ID!): Boolean!
+
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  deleteUser(id: ID!): Boolean!
+  resetUserPassword(id: ID!): String!
+}
