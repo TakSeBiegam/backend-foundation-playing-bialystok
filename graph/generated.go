@@ -82,9 +82,11 @@ type ComplexityRoot struct {
 		ArchiveContactSubmission    func(childComplexity int, id string, archived bool) int
 		CreateContactSubmission     func(childComplexity int, input model.CreateContactSubmissionInput) int
 		CreateEvent                 func(childComplexity int, input model.CreateEventInput) int
+		CreateOfferBlock            func(childComplexity int, input model.CreateOfferBlockInput) int
 		CreatePartner               func(childComplexity int, input model.CreatePartnerInput) int
 		CreateUser                  func(childComplexity int, input model.CreateUserInput) int
 		DeleteEvent                 func(childComplexity int, id string) int
+		DeleteOfferBlock            func(childComplexity int, id string) int
 		DeletePartner               func(childComplexity int, id string) int
 		DeleteUser                  func(childComplexity int, id string) int
 		MarkContactSubmissionRead   func(childComplexity int, id string, readerUserID string) int
@@ -92,8 +94,29 @@ type ComplexityRoot struct {
 		ResetUserPassword           func(childComplexity int, id string) int
 		SignIn                      func(childComplexity int, input model.SignInInput) int
 		UpdateEvent                 func(childComplexity int, id string, input model.UpdateEventInput) int
+		UpdateOfferBlock            func(childComplexity int, id string, input model.UpdateOfferBlockInput) int
 		UpdatePartner               func(childComplexity int, id string, input model.UpdatePartnerInput) int
 		UpdateUser                  func(childComplexity int, id string, input model.UpdateUserInput) int
+	}
+
+	OfferBlock struct {
+		Badge      func(childComplexity int) int
+		BlockType  func(childComplexity int) int
+		Content    func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		CtaHref    func(childComplexity int) int
+		CtaLabel   func(childComplexity int) int
+		Highlight  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		ImageAlt   func(childComplexity int) int
+		ImageURL   func(childComplexity int) int
+		IsFeatured func(childComplexity int) int
+		Items      func(childComplexity int) int
+		Order      func(childComplexity int) int
+		Section    func(childComplexity int) int
+		Subtitle   func(childComplexity int) int
+		Title      func(childComplexity int) int
+		UpdatedAt  func(childComplexity int) int
 	}
 
 	Partner struct {
@@ -110,6 +133,8 @@ type ComplexityRoot struct {
 		Event              func(childComplexity int, id string) int
 		Events             func(childComplexity int) int
 		Me                 func(childComplexity int) int
+		OfferBlock         func(childComplexity int, id string) int
+		OfferBlocks        func(childComplexity int, section *string) int
 		Partner            func(childComplexity int, id string) int
 		Partners           func(childComplexity int) int
 		Users              func(childComplexity int) int
@@ -137,6 +162,9 @@ type MutationResolver interface {
 	CreatePartner(ctx context.Context, input model.CreatePartnerInput) (*model.Partner, error)
 	UpdatePartner(ctx context.Context, id string, input model.UpdatePartnerInput) (*model.Partner, error)
 	DeletePartner(ctx context.Context, id string) (bool, error)
+	CreateOfferBlock(ctx context.Context, input model.CreateOfferBlockInput) (*model.OfferBlock, error)
+	UpdateOfferBlock(ctx context.Context, id string, input model.UpdateOfferBlockInput) (*model.OfferBlock, error)
+	DeleteOfferBlock(ctx context.Context, id string) (bool, error)
 	CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error)
 	UpdateUser(ctx context.Context, id string, input model.UpdateUserInput) (*model.User, error)
 	DeleteUser(ctx context.Context, id string) (bool, error)
@@ -147,6 +175,8 @@ type QueryResolver interface {
 	Event(ctx context.Context, id string) (*model.Event, error)
 	Partners(ctx context.Context) ([]*model.Partner, error)
 	Partner(ctx context.Context, id string) (*model.Partner, error)
+	OfferBlocks(ctx context.Context, section *string) ([]*model.OfferBlock, error)
+	OfferBlock(ctx context.Context, id string) (*model.OfferBlock, error)
 	ContactSubmissions(ctx context.Context, archived *bool) ([]*model.ContactSubmission, error)
 	ContactSubmission(ctx context.Context, id string) (*model.ContactSubmission, error)
 	Users(ctx context.Context) ([]*model.User, error)
@@ -389,6 +419,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CreateEvent(childComplexity, args["input"].(model.CreateEventInput)), true
+	case "Mutation.createOfferBlock":
+		if e.ComplexityRoot.Mutation.CreateOfferBlock == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOfferBlock_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreateOfferBlock(childComplexity, args["input"].(model.CreateOfferBlockInput)), true
 	case "Mutation.createPartner":
 		if e.ComplexityRoot.Mutation.CreatePartner == nil {
 			break
@@ -422,6 +463,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.DeleteEvent(childComplexity, args["id"].(string)), true
+	case "Mutation.deleteOfferBlock":
+		if e.ComplexityRoot.Mutation.DeleteOfferBlock == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteOfferBlock_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeleteOfferBlock(childComplexity, args["id"].(string)), true
 	case "Mutation.deletePartner":
 		if e.ComplexityRoot.Mutation.DeletePartner == nil {
 			break
@@ -499,6 +551,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.UpdateEvent(childComplexity, args["id"].(string), args["input"].(model.UpdateEventInput)), true
+	case "Mutation.updateOfferBlock":
+		if e.ComplexityRoot.Mutation.UpdateOfferBlock == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateOfferBlock_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdateOfferBlock(childComplexity, args["id"].(string), args["input"].(model.UpdateOfferBlockInput)), true
 	case "Mutation.updatePartner":
 		if e.ComplexityRoot.Mutation.UpdatePartner == nil {
 			break
@@ -521,6 +584,109 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.UpdateUser(childComplexity, args["id"].(string), args["input"].(model.UpdateUserInput)), true
+
+	case "OfferBlock.badge":
+		if e.ComplexityRoot.OfferBlock.Badge == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Badge(childComplexity), true
+	case "OfferBlock.blockType":
+		if e.ComplexityRoot.OfferBlock.BlockType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.BlockType(childComplexity), true
+	case "OfferBlock.content":
+		if e.ComplexityRoot.OfferBlock.Content == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Content(childComplexity), true
+	case "OfferBlock.createdAt":
+		if e.ComplexityRoot.OfferBlock.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.CreatedAt(childComplexity), true
+	case "OfferBlock.ctaHref":
+		if e.ComplexityRoot.OfferBlock.CtaHref == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.CtaHref(childComplexity), true
+	case "OfferBlock.ctaLabel":
+		if e.ComplexityRoot.OfferBlock.CtaLabel == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.CtaLabel(childComplexity), true
+	case "OfferBlock.highlight":
+		if e.ComplexityRoot.OfferBlock.Highlight == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Highlight(childComplexity), true
+	case "OfferBlock.id":
+		if e.ComplexityRoot.OfferBlock.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.ID(childComplexity), true
+	case "OfferBlock.imageAlt":
+		if e.ComplexityRoot.OfferBlock.ImageAlt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.ImageAlt(childComplexity), true
+	case "OfferBlock.imageUrl":
+		if e.ComplexityRoot.OfferBlock.ImageURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.ImageURL(childComplexity), true
+	case "OfferBlock.isFeatured":
+		if e.ComplexityRoot.OfferBlock.IsFeatured == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.IsFeatured(childComplexity), true
+	case "OfferBlock.items":
+		if e.ComplexityRoot.OfferBlock.Items == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Items(childComplexity), true
+	case "OfferBlock.order":
+		if e.ComplexityRoot.OfferBlock.Order == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Order(childComplexity), true
+	case "OfferBlock.section":
+		if e.ComplexityRoot.OfferBlock.Section == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Section(childComplexity), true
+	case "OfferBlock.subtitle":
+		if e.ComplexityRoot.OfferBlock.Subtitle == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Subtitle(childComplexity), true
+	case "OfferBlock.title":
+		if e.ComplexityRoot.OfferBlock.Title == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.Title(childComplexity), true
+	case "OfferBlock.updatedAt":
+		if e.ComplexityRoot.OfferBlock.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.UpdatedAt(childComplexity), true
 
 	case "Partner.description":
 		if e.ComplexityRoot.Partner.Description == nil {
@@ -599,6 +765,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Me(childComplexity), true
+	case "Query.offerBlock":
+		if e.ComplexityRoot.Query.OfferBlock == nil {
+			break
+		}
+
+		args, err := ec.field_Query_offerBlock_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.OfferBlock(childComplexity, args["id"].(string)), true
+	case "Query.offerBlocks":
+		if e.ComplexityRoot.Query.OfferBlocks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_offerBlocks_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.OfferBlocks(childComplexity, args["section"].(*string)), true
 	case "Query.partner":
 		if e.ComplexityRoot.Query.Partner == nil {
 			break
@@ -665,10 +853,12 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAddContactSubmissionNoteInput,
 		ec.unmarshalInputCreateContactSubmissionInput,
 		ec.unmarshalInputCreateEventInput,
+		ec.unmarshalInputCreateOfferBlockInput,
 		ec.unmarshalInputCreatePartnerInput,
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputSignInInput,
 		ec.unmarshalInputUpdateEventInput,
+		ec.unmarshalInputUpdateOfferBlockInput,
 		ec.unmarshalInputUpdatePartnerInput,
 		ec.unmarshalInputUpdateUserInput,
 	)
@@ -814,6 +1004,17 @@ func (ec *executionContext) field_Mutation_createEvent_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createOfferBlock_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateOfferBlockInput2backendᚋgraphᚋmodelᚐCreateOfferBlockInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createPartner_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -837,6 +1038,17 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Mutation_deleteEvent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteOfferBlock_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -934,6 +1146,22 @@ func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateOfferBlock_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateOfferBlockInput2backendᚋgraphᚋmodelᚐUpdateOfferBlockInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updatePartner_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1007,6 +1235,28 @@ func (ec *executionContext) field_Query_event_args(ctx context.Context, rawArgs 
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_offerBlock_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_offerBlocks_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "section", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["section"] = arg0
 	return args, nil
 }
 
@@ -2650,6 +2900,201 @@ func (ec *executionContext) fieldContext_Mutation_deletePartner(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createOfferBlock(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createOfferBlock,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreateOfferBlock(ctx, fc.Args["input"].(model.CreateOfferBlockInput))
+		},
+		nil,
+		ec.marshalNOfferBlock2ᚖbackendᚋgraphᚋmodelᚐOfferBlock,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createOfferBlock(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "section":
+				return ec.fieldContext_OfferBlock_section(ctx, field)
+			case "blockType":
+				return ec.fieldContext_OfferBlock_blockType(ctx, field)
+			case "badge":
+				return ec.fieldContext_OfferBlock_badge(ctx, field)
+			case "title":
+				return ec.fieldContext_OfferBlock_title(ctx, field)
+			case "subtitle":
+				return ec.fieldContext_OfferBlock_subtitle(ctx, field)
+			case "content":
+				return ec.fieldContext_OfferBlock_content(ctx, field)
+			case "items":
+				return ec.fieldContext_OfferBlock_items(ctx, field)
+			case "highlight":
+				return ec.fieldContext_OfferBlock_highlight(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_OfferBlock_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_OfferBlock_imageAlt(ctx, field)
+			case "ctaLabel":
+				return ec.fieldContext_OfferBlock_ctaLabel(ctx, field)
+			case "ctaHref":
+				return ec.fieldContext_OfferBlock_ctaHref(ctx, field)
+			case "isFeatured":
+				return ec.fieldContext_OfferBlock_isFeatured(ctx, field)
+			case "order":
+				return ec.fieldContext_OfferBlock_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_OfferBlock_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_OfferBlock_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OfferBlock", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createOfferBlock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateOfferBlock(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateOfferBlock,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdateOfferBlock(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdateOfferBlockInput))
+		},
+		nil,
+		ec.marshalNOfferBlock2ᚖbackendᚋgraphᚋmodelᚐOfferBlock,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateOfferBlock(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "section":
+				return ec.fieldContext_OfferBlock_section(ctx, field)
+			case "blockType":
+				return ec.fieldContext_OfferBlock_blockType(ctx, field)
+			case "badge":
+				return ec.fieldContext_OfferBlock_badge(ctx, field)
+			case "title":
+				return ec.fieldContext_OfferBlock_title(ctx, field)
+			case "subtitle":
+				return ec.fieldContext_OfferBlock_subtitle(ctx, field)
+			case "content":
+				return ec.fieldContext_OfferBlock_content(ctx, field)
+			case "items":
+				return ec.fieldContext_OfferBlock_items(ctx, field)
+			case "highlight":
+				return ec.fieldContext_OfferBlock_highlight(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_OfferBlock_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_OfferBlock_imageAlt(ctx, field)
+			case "ctaLabel":
+				return ec.fieldContext_OfferBlock_ctaLabel(ctx, field)
+			case "ctaHref":
+				return ec.fieldContext_OfferBlock_ctaHref(ctx, field)
+			case "isFeatured":
+				return ec.fieldContext_OfferBlock_isFeatured(ctx, field)
+			case "order":
+				return ec.fieldContext_OfferBlock_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_OfferBlock_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_OfferBlock_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OfferBlock", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateOfferBlock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteOfferBlock(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteOfferBlock,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeleteOfferBlock(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteOfferBlock(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteOfferBlock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2834,6 +3279,499 @@ func (ec *executionContext) fieldContext_Mutation_resetUserPassword(ctx context.
 	if fc.Args, err = ec.field_Mutation_resetUserPassword_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_id(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_section(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_section,
+		func(ctx context.Context) (any, error) {
+			return obj.Section, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_section(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_blockType(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_blockType,
+		func(ctx context.Context) (any, error) {
+			return obj.BlockType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_blockType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_badge(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_badge,
+		func(ctx context.Context) (any, error) {
+			return obj.Badge, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_badge(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_title(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_title,
+		func(ctx context.Context) (any, error) {
+			return obj.Title, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_subtitle(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_subtitle,
+		func(ctx context.Context) (any, error) {
+			return obj.Subtitle, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_subtitle(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_content(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_content,
+		func(ctx context.Context) (any, error) {
+			return obj.Content, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_items(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_items,
+		func(ctx context.Context) (any, error) {
+			return obj.Items, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_highlight(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_highlight,
+		func(ctx context.Context) (any, error) {
+			return obj.Highlight, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_highlight(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_imageUrl(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_imageUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.ImageURL, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_imageUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_imageAlt(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_imageAlt,
+		func(ctx context.Context) (any, error) {
+			return obj.ImageAlt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_imageAlt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_ctaLabel(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_ctaLabel,
+		func(ctx context.Context) (any, error) {
+			return obj.CtaLabel, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_ctaLabel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_ctaHref(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_ctaHref,
+		func(ctx context.Context) (any, error) {
+			return obj.CtaHref, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_ctaHref(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_isFeatured(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_isFeatured,
+		func(ctx context.Context) (any, error) {
+			return obj.IsFeatured, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_isFeatured(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_order(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_order,
+		func(ctx context.Context) (any, error) {
+			return obj.Order, nil
+		},
+		nil,
+		ec.marshalNInt2int32,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_order(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -3181,6 +4119,160 @@ func (ec *executionContext) fieldContext_Query_partner(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_partner_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_offerBlocks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_offerBlocks,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().OfferBlocks(ctx, fc.Args["section"].(*string))
+		},
+		nil,
+		ec.marshalNOfferBlock2ᚕᚖbackendᚋgraphᚋmodelᚐOfferBlockᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_offerBlocks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "section":
+				return ec.fieldContext_OfferBlock_section(ctx, field)
+			case "blockType":
+				return ec.fieldContext_OfferBlock_blockType(ctx, field)
+			case "badge":
+				return ec.fieldContext_OfferBlock_badge(ctx, field)
+			case "title":
+				return ec.fieldContext_OfferBlock_title(ctx, field)
+			case "subtitle":
+				return ec.fieldContext_OfferBlock_subtitle(ctx, field)
+			case "content":
+				return ec.fieldContext_OfferBlock_content(ctx, field)
+			case "items":
+				return ec.fieldContext_OfferBlock_items(ctx, field)
+			case "highlight":
+				return ec.fieldContext_OfferBlock_highlight(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_OfferBlock_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_OfferBlock_imageAlt(ctx, field)
+			case "ctaLabel":
+				return ec.fieldContext_OfferBlock_ctaLabel(ctx, field)
+			case "ctaHref":
+				return ec.fieldContext_OfferBlock_ctaHref(ctx, field)
+			case "isFeatured":
+				return ec.fieldContext_OfferBlock_isFeatured(ctx, field)
+			case "order":
+				return ec.fieldContext_OfferBlock_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_OfferBlock_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_OfferBlock_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OfferBlock", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_offerBlocks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_offerBlock(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_offerBlock,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().OfferBlock(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalOOfferBlock2ᚖbackendᚋgraphᚋmodelᚐOfferBlock,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_offerBlock(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "section":
+				return ec.fieldContext_OfferBlock_section(ctx, field)
+			case "blockType":
+				return ec.fieldContext_OfferBlock_blockType(ctx, field)
+			case "badge":
+				return ec.fieldContext_OfferBlock_badge(ctx, field)
+			case "title":
+				return ec.fieldContext_OfferBlock_title(ctx, field)
+			case "subtitle":
+				return ec.fieldContext_OfferBlock_subtitle(ctx, field)
+			case "content":
+				return ec.fieldContext_OfferBlock_content(ctx, field)
+			case "items":
+				return ec.fieldContext_OfferBlock_items(ctx, field)
+			case "highlight":
+				return ec.fieldContext_OfferBlock_highlight(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_OfferBlock_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_OfferBlock_imageAlt(ctx, field)
+			case "ctaLabel":
+				return ec.fieldContext_OfferBlock_ctaLabel(ctx, field)
+			case "ctaHref":
+				return ec.fieldContext_OfferBlock_ctaHref(ctx, field)
+			case "isFeatured":
+				return ec.fieldContext_OfferBlock_isFeatured(ctx, field)
+			case "order":
+				return ec.fieldContext_OfferBlock_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_OfferBlock_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_OfferBlock_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OfferBlock", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_offerBlock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5273,6 +6365,137 @@ func (ec *executionContext) unmarshalInputCreateEventInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateOfferBlockInput(ctx context.Context, obj any) (model.CreateOfferBlockInput, error) {
+	var it model.CreateOfferBlockInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["items"]; !present {
+		asMap["items"] = []any{}
+	}
+	if _, present := asMap["isFeatured"]; !present {
+		asMap["isFeatured"] = false
+	}
+	if _, present := asMap["order"]; !present {
+		asMap["order"] = 0
+	}
+
+	fieldsInOrder := [...]string{"section", "blockType", "badge", "title", "subtitle", "content", "items", "highlight", "imageUrl", "imageAlt", "ctaLabel", "ctaHref", "isFeatured", "order"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "section":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("section"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Section = data
+		case "blockType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("blockType"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BlockType = data
+		case "badge":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("badge"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Badge = data
+		case "title":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Title = data
+		case "subtitle":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subtitle"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Subtitle = data
+		case "content":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Content = data
+		case "items":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("items"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Items = data
+		case "highlight":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("highlight"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Highlight = data
+		case "imageUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageURL = data
+		case "imageAlt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageAlt"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageAlt = data
+		case "ctaLabel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ctaLabel"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CtaLabel = data
+		case "ctaHref":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ctaHref"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CtaHref = data
+		case "isFeatured":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isFeatured"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsFeatured = data
+		case "order":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Order = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreatePartnerInput(ctx context.Context, obj any) (model.CreatePartnerInput, error) {
 	var it model.CreatePartnerInput
 	if obj == nil {
@@ -5479,6 +6702,127 @@ func (ec *executionContext) unmarshalInputUpdateEventInput(ctx context.Context, 
 				return it, err
 			}
 			it.ImageURL = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateOfferBlockInput(ctx context.Context, obj any) (model.UpdateOfferBlockInput, error) {
+	var it model.UpdateOfferBlockInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"section", "blockType", "badge", "title", "subtitle", "content", "items", "highlight", "imageUrl", "imageAlt", "ctaLabel", "ctaHref", "isFeatured", "order"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "section":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("section"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Section = data
+		case "blockType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("blockType"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BlockType = data
+		case "badge":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("badge"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Badge = data
+		case "title":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Title = data
+		case "subtitle":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subtitle"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Subtitle = data
+		case "content":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Content = data
+		case "items":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("items"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Items = data
+		case "highlight":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("highlight"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Highlight = data
+		case "imageUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageURL = data
+		case "imageAlt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageAlt"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageAlt = data
+		case "ctaLabel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ctaLabel"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CtaLabel = data
+		case "ctaHref":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ctaHref"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CtaHref = data
+		case "isFeatured":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isFeatured"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsFeatured = data
+		case "order":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Order = data
 		}
 	}
 	return it, nil
@@ -5951,6 +7295,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createOfferBlock":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createOfferBlock(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateOfferBlock":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateOfferBlock(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteOfferBlock":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteOfferBlock(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUser(ctx, field)
@@ -5976,6 +7341,98 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_resetUserPassword(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var offerBlockImplementors = []string{"OfferBlock"}
+
+func (ec *executionContext) _OfferBlock(ctx context.Context, sel ast.SelectionSet, obj *model.OfferBlock) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, offerBlockImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OfferBlock")
+		case "id":
+			out.Values[i] = ec._OfferBlock_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "section":
+			out.Values[i] = ec._OfferBlock_section(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "blockType":
+			out.Values[i] = ec._OfferBlock_blockType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "badge":
+			out.Values[i] = ec._OfferBlock_badge(ctx, field, obj)
+		case "title":
+			out.Values[i] = ec._OfferBlock_title(ctx, field, obj)
+		case "subtitle":
+			out.Values[i] = ec._OfferBlock_subtitle(ctx, field, obj)
+		case "content":
+			out.Values[i] = ec._OfferBlock_content(ctx, field, obj)
+		case "items":
+			out.Values[i] = ec._OfferBlock_items(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "highlight":
+			out.Values[i] = ec._OfferBlock_highlight(ctx, field, obj)
+		case "imageUrl":
+			out.Values[i] = ec._OfferBlock_imageUrl(ctx, field, obj)
+		case "imageAlt":
+			out.Values[i] = ec._OfferBlock_imageAlt(ctx, field, obj)
+		case "ctaLabel":
+			out.Values[i] = ec._OfferBlock_ctaLabel(ctx, field, obj)
+		case "ctaHref":
+			out.Values[i] = ec._OfferBlock_ctaHref(ctx, field, obj)
+		case "isFeatured":
+			out.Values[i] = ec._OfferBlock_isFeatured(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "order":
+			out.Values[i] = ec._OfferBlock_order(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._OfferBlock_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._OfferBlock_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6144,6 +7601,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_partner(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "offerBlocks":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_offerBlocks(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "offerBlock":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_offerBlock(ctx, field)
 				return res
 			}
 
@@ -6759,6 +8257,11 @@ func (ec *executionContext) unmarshalNCreateEventInput2backendᚋgraphᚋmodel�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateOfferBlockInput2backendᚋgraphᚋmodelᚐCreateOfferBlockInput(ctx context.Context, v any) (model.CreateOfferBlockInput, error) {
+	res, err := ec.unmarshalInputCreateOfferBlockInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreatePartnerInput2backendᚋgraphᚋmodelᚐCreatePartnerInput(ctx context.Context, v any) (model.CreatePartnerInput, error) {
 	res, err := ec.unmarshalInputCreatePartnerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6813,6 +8316,52 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int32(ctx context.Context, v any) (int32, error) {
+	res, err := graphql.UnmarshalInt32(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalInt32(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNOfferBlock2backendᚋgraphᚋmodelᚐOfferBlock(ctx context.Context, sel ast.SelectionSet, v model.OfferBlock) graphql.Marshaler {
+	return ec._OfferBlock(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOfferBlock2ᚕᚖbackendᚋgraphᚋmodelᚐOfferBlockᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.OfferBlock) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNOfferBlock2ᚖbackendᚋgraphᚋmodelᚐOfferBlock(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNOfferBlock2ᚖbackendᚋgraphᚋmodelᚐOfferBlock(ctx context.Context, sel ast.SelectionSet, v *model.OfferBlock) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._OfferBlock(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPartner2backendᚋgraphᚋmodelᚐPartner(ctx context.Context, sel ast.SelectionSet, v model.Partner) graphql.Marshaler {
@@ -6876,8 +8425,43 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNUpdateEventInput2backendᚋgraphᚋmodelᚐUpdateEventInput(ctx context.Context, v any) (model.UpdateEventInput, error) {
 	res, err := ec.unmarshalInputUpdateEventInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateOfferBlockInput2backendᚋgraphᚋmodelᚐUpdateOfferBlockInput(ctx context.Context, v any) (model.UpdateOfferBlockInput, error) {
+	res, err := ec.unmarshalInputUpdateOfferBlockInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7106,6 +8690,31 @@ func (ec *executionContext) marshalOEvent2ᚖbackendᚋgraphᚋmodelᚐEvent(ctx
 	return ec._Event(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt32(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint32(ctx context.Context, sel ast.SelectionSet, v *int32) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalInt32(*v)
+	return res
+}
+
+func (ec *executionContext) marshalOOfferBlock2ᚖbackendᚋgraphᚋmodelᚐOfferBlock(ctx context.Context, sel ast.SelectionSet, v *model.OfferBlock) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._OfferBlock(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOPartner2ᚖbackendᚋgraphᚋmodelᚐPartner(ctx context.Context, sel ast.SelectionSet, v *model.Partner) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7127,6 +8736,42 @@ func (ec *executionContext) marshalORole2ᚖbackendᚋgraphᚋmodelᚐRole(ctx c
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {

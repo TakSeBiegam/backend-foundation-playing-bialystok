@@ -9,6 +9,7 @@ import (
 	"backend/graph/model"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -46,7 +47,58 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 
 // CreateContactSubmission is the resolver for the createContactSubmission field.
 func (r *mutationResolver) CreateContactSubmission(ctx context.Context, input model.CreateContactSubmissionInput) (*model.ContactSubmission, error) {
-	panic(fmt.Errorf("not implemented: CreateContactSubmission - createContactSubmission"))
+	var item model.ContactSubmission
+	var readAt *time.Time
+	var readByUserID *string
+	var createdAt, updatedAt time.Time
+	var lastNoteAt *time.Time
+
+	err := r.DB.QueryRow(ctx,
+		`INSERT INTO contact_submissions (first_name, last_name, phone, message)
+		 VALUES ($1,$2,$3,$4)
+		 RETURNING id, first_name, last_name, phone, message, is_read, read_at, read_by_user_id, archived, last_note_at, created_at, updated_at`,
+		input.FirstName, input.LastName, input.Phone, input.Message,
+	).Scan(
+		&item.ID,
+		&item.FirstName,
+		&item.LastName,
+		&item.Phone,
+		&item.Message,
+		&item.IsRead,
+		&readAt,
+		&readByUserID,
+		&item.Archived,
+		&lastNoteAt,
+		&createdAt,
+		&updatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create contact submission: %w", err)
+	}
+
+	if readAt != nil {
+		t := readAt.Format(time.RFC3339)
+		item.ReadAt = &t
+	}
+
+	if readByUserID != nil {
+		reader, err := r.getUserByID(ctx, *readByUserID)
+		if err != nil {
+			return nil, err
+		}
+		item.ReadBy = reader
+	}
+
+	item.CreatedAt = createdAt.Format(time.RFC3339)
+	item.UpdatedAt = updatedAt.Format(time.RFC3339)
+	if lastNoteAt != nil {
+		s := lastNoteAt.Format(time.RFC3339)
+		item.LastNoteAt = &s
+	}
+
+	item.Notes = []*model.ContactSubmissionNote{}
+
+	return &item, nil
 }
 
 // MarkContactSubmissionRead is the resolver for the markContactSubmissionRead field.
@@ -174,6 +226,133 @@ func (r *mutationResolver) DeletePartner(ctx context.Context, id string) (bool, 
 	tag, err := r.DB.Exec(ctx, "DELETE FROM partners WHERE id = $1", id)
 	if err != nil {
 		return false, fmt.Errorf("delete partner: %w", err)
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
+// CreateOfferBlock is the resolver for the createOfferBlock field.
+func (r *mutationResolver) CreateOfferBlock(ctx context.Context, input model.CreateOfferBlockInput) (*model.OfferBlock, error) {
+	row := r.DB.QueryRow(ctx,
+		`INSERT INTO offer_blocks (
+			section,
+			block_type,
+			badge,
+			title,
+			subtitle,
+			content,
+			items,
+			highlight,
+			image_url,
+			image_alt,
+			cta_label,
+			cta_href,
+			is_featured,
+			display_order
+		)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+		RETURNING
+			id,
+			section,
+			block_type,
+			badge,
+			title,
+			subtitle,
+			content,
+			items,
+			highlight,
+			image_url,
+			image_alt,
+			cta_label,
+			cta_href,
+			is_featured,
+			display_order,
+			created_at,
+			updated_at`,
+		normalizeRequiredString(input.Section),
+		normalizeRequiredString(input.BlockType),
+		normalizeNullableString(input.Badge),
+		normalizeNullableString(input.Title),
+		normalizeNullableString(input.Subtitle),
+		normalizeNullableString(input.Content),
+		cleanStringSlice(input.Items),
+		normalizeNullableString(input.Highlight),
+		normalizeNullableString(input.ImageURL),
+		normalizeNullableString(input.ImageAlt),
+		normalizeNullableString(input.CtaLabel),
+		normalizeNullableString(input.CtaHref),
+		input.IsFeatured,
+		input.Order,
+	)
+	return scanOfferBlock(row)
+}
+
+// UpdateOfferBlock is the resolver for the updateOfferBlock field.
+func (r *mutationResolver) UpdateOfferBlock(ctx context.Context, id string, input model.UpdateOfferBlockInput) (*model.OfferBlock, error) {
+	var items []string
+	if input.Items != nil {
+		items = cleanStringSlice(input.Items)
+	}
+
+	row := r.DB.QueryRow(ctx,
+		`UPDATE offer_blocks SET
+			section = COALESCE($1, section),
+			block_type = COALESCE($2, block_type),
+			badge = COALESCE($3, badge),
+			title = COALESCE($4, title),
+			subtitle = COALESCE($5, subtitle),
+			content = COALESCE($6, content),
+			items = COALESCE($7::text[], items),
+			highlight = COALESCE($8, highlight),
+			image_url = COALESCE($9, image_url),
+			image_alt = COALESCE($10, image_alt),
+			cta_label = COALESCE($11, cta_label),
+			cta_href = COALESCE($12, cta_href),
+			is_featured = COALESCE($13, is_featured),
+			display_order = COALESCE($14, display_order),
+			updated_at = NOW()
+		WHERE id = $15
+		RETURNING
+			id,
+			section,
+			block_type,
+			badge,
+			title,
+			subtitle,
+			content,
+			items,
+			highlight,
+			image_url,
+			image_alt,
+			cta_label,
+			cta_href,
+			is_featured,
+			display_order,
+			created_at,
+			updated_at`,
+		normalizeNullableString(input.Section),
+		normalizeNullableString(input.BlockType),
+		normalizeNullableString(input.Badge),
+		normalizeNullableString(input.Title),
+		normalizeNullableString(input.Subtitle),
+		normalizeNullableString(input.Content),
+		items,
+		normalizeNullableString(input.Highlight),
+		normalizeNullableString(input.ImageURL),
+		normalizeNullableString(input.ImageAlt),
+		normalizeNullableString(input.CtaLabel),
+		normalizeNullableString(input.CtaHref),
+		input.IsFeatured,
+		input.Order,
+		id,
+	)
+	return scanOfferBlock(row)
+}
+
+// DeleteOfferBlock is the resolver for the deleteOfferBlock field.
+func (r *mutationResolver) DeleteOfferBlock(ctx context.Context, id string) (bool, error) {
+	tag, err := r.DB.Exec(ctx, "DELETE FROM offer_blocks WHERE id = $1", id)
+	if err != nil {
+		return false, fmt.Errorf("delete offer block: %w", err)
 	}
 	return tag.RowsAffected() > 0, nil
 }
@@ -326,6 +505,84 @@ func (r *queryResolver) Partner(ctx context.Context, id string) (*model.Partner,
 	return scanPartner(row)
 }
 
+// OfferBlocks is the resolver for the offerBlocks field.
+func (r *queryResolver) OfferBlocks(ctx context.Context, section *string) ([]*model.OfferBlock, error) {
+	query := `SELECT
+		id,
+		section,
+		block_type,
+		badge,
+		title,
+		subtitle,
+		content,
+		items,
+		highlight,
+		image_url,
+		image_alt,
+		cta_label,
+		cta_href,
+		is_featured,
+		display_order,
+		created_at,
+		updated_at
+	FROM offer_blocks`
+
+	args := []any{}
+	if section != nil {
+		value := strings.TrimSpace(*section)
+		if value != "" {
+			query += ` WHERE LOWER(section) = LOWER($1)`
+			args = append(args, value)
+		}
+	}
+
+	query += ` ORDER BY display_order, created_at`
+
+	rows, err := r.DB.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("list offer blocks: %w", err)
+	}
+	defer rows.Close()
+
+	blocks := make([]*model.OfferBlock, 0)
+	for rows.Next() {
+		block, err := scanOfferBlockRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
+	}
+
+	return blocks, nil
+}
+
+// OfferBlock is the resolver for the offerBlock field.
+func (r *queryResolver) OfferBlock(ctx context.Context, id string) (*model.OfferBlock, error) {
+	row := r.DB.QueryRow(ctx,
+		`SELECT
+			id,
+			section,
+			block_type,
+			badge,
+			title,
+			subtitle,
+			content,
+			items,
+			highlight,
+			image_url,
+			image_alt,
+			cta_label,
+			cta_href,
+			is_featured,
+			display_order,
+			created_at,
+			updated_at
+		 FROM offer_blocks WHERE id = $1`,
+		id,
+	)
+	return scanOfferBlock(row)
+}
+
 // ContactSubmissions is the resolver for the contactSubmissions field.
 func (r *queryResolver) ContactSubmissions(ctx context.Context, archived *bool) ([]*model.ContactSubmission, error) {
 	a := false
@@ -421,7 +678,12 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	return nil, nil
+	// Resolve caller id from context (set by HTTP middleware) and return that user.
+	callerId, _ := ctx.Value("callerId").(string)
+	if callerId == "" {
+		return nil, nil
+	}
+	return r.getUserByID(ctx, callerId)
 }
 
 // Mutation returns MutationResolver implementation.
@@ -432,77 +694,3 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func roleFromDB(r string) model.Role {
-	switch strings.ToLower(r) {
-	case "admin":
-		return model.RoleAdmin
-	case "moderator":
-		return model.RoleModerator
-	default:
-		return model.RoleEditor
-	}
-}
-func roleToDB(r model.Role) string {
-	return strings.ToLower(string(r))
-}
-const passwordCharset = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"
-func randomPassword(length int) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = passwordCharset[rand.Intn(len(passwordCharset))]
-	}
-	return string(b)
-}
-type rowScanner interface {
-	Scan(dest ...any) error
-}
-func scanEvent(row rowScanner) (*model.Event, error) {
-	var e model.Event
-	var date time.Time
-	var createdAt time.Time
-	if err := row.Scan(&e.ID, &e.Title, &e.Description, &date, &e.Location, &e.Time, &e.FacebookURL, &e.ImageURL, &createdAt); err != nil {
-		return nil, fmt.Errorf("scan event: %w", err)
-	}
-	e.Date = date.Format("2006-01-02")
-	e.CreatedAt = createdAt.Format(time.RFC3339)
-	return &e, nil
-}
-type pgxRows interface {
-	Scan(dest ...any) error
-}
-func scanEventRow(row pgxRows) (*model.Event, error) {
-	return scanEvent(row)
-}
-func scanPartner(row rowScanner) (*model.Partner, error) {
-	var p model.Partner
-	if err := row.Scan(&p.ID, &p.Name, &p.LogoURL, &p.WebsiteURL, &p.Description); err != nil {
-		return nil, fmt.Errorf("scan partner: %w", err)
-	}
-	return &p, nil
-}
-func scanPartnerRow(row pgxRows) (*model.Partner, error) {
-	return scanPartner(row)
-}
-func scanUser(row rowScanner) (*model.User, error) {
-	var u model.User
-	var dbRole string
-	var createdAt time.Time
-	if err := row.Scan(&u.ID, &u.Email, &u.Username, &dbRole, &createdAt); err != nil {
-		return nil, fmt.Errorf("scan user: %w", err)
-	}
-	u.Role = roleFromDB(dbRole)
-	u.CreatedAt = createdAt.Format(time.RFC3339)
-	return &u, nil
-}
-func scanUserRow(row pgxRows) (*model.User, error) {
-	return scanUser(row)
-}
-*/

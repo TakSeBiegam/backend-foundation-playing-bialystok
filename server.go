@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/graph"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"bytes"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -67,6 +67,40 @@ func ensureContactSubmissionSchema(ctx context.Context, pool *pgxpool.Pool) erro
 	return nil
 }
 
+func ensureOfferBlocksSchema(ctx context.Context, pool *pgxpool.Pool) error {
+	statements := []string{
+		`CREATE TABLE IF NOT EXISTS offer_blocks (
+			id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+			section       VARCHAR(80) NOT NULL,
+			block_type    VARCHAR(80) NOT NULL,
+			badge         VARCHAR(120),
+			title         VARCHAR(255),
+			subtitle      VARCHAR(255),
+			content       TEXT,
+			items         TEXT[]      NOT NULL DEFAULT '{}',
+			highlight     TEXT,
+			image_url     VARCHAR(500),
+			image_alt     VARCHAR(255),
+			cta_label     VARCHAR(120),
+			cta_href      VARCHAR(500),
+			is_featured   BOOLEAN     NOT NULL DEFAULT FALSE,
+			display_order INTEGER     NOT NULL DEFAULT 0,
+			created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)`,
+		`CREATE INDEX IF NOT EXISTS offer_blocks_section_order_idx ON offer_blocks(section, display_order, created_at)`,
+		`CREATE INDEX IF NOT EXISTS offer_blocks_featured_idx ON offer_blocks(is_featured)`,
+	}
+
+	for _, statement := range statements {
+		if _, err := pool.Exec(ctx, statement); err != nil {
+			return fmt.Errorf("apply offer schema statement: %w", err)
+		}
+	}
+
+	return nil
+}
+
 func corsMiddleware(allowedOrigin string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +147,10 @@ func main() {
 		log.Fatalf("unable to ensure contact schema: %v", err)
 	}
 
+	if err := ensureOfferBlocksSchema(context.Background(), pool); err != nil {
+		log.Fatalf("unable to ensure offer schema: %v", err)
+	}
+
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{DB: pool},
 	}))
@@ -142,10 +180,9 @@ func main() {
 		// restore body for downstream handler
 		r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
-		// determine caller role from proxy headers
-		callerRole := strings.ToUpper(strings.TrimSpace(r.Header.Get("X-User-Role")))
+		cRole := strings.ToUpper(strings.TrimSpace(r.Header.Get("X-User-Role")))
+		cId := strings.TrimSpace(r.Header.Get("X-User-Id"))
 
-		// naive GraphQL operation inspection (sufficient for admin panel patterns)
 		var payload map[string]any
 		if len(bodyBytes) > 0 {
 			_ = json.Unmarshal(bodyBytes, &payload)
@@ -167,32 +204,59 @@ func main() {
 			_ = json.NewEncoder(w).Encode(map[string]any{"errors": []map[string]any{{"message": msg}}, "data": nil})
 		}
 
-		// Authorization rules:
-		// - only ADMIN or OWNER can list/create/delete/reset users
-		// - only OWNER can assign OWNER role
 		q := strings.ToLower(queryStr)
 		if strings.Contains(q, "createuser") || strings.Contains(q, "deleteuser") || strings.Contains(q, "resetuserpassword") || strings.Contains(q, "updateuser") || strings.Contains(q, "users") {
-			if callerRole == "" {
+			if cRole == "" {
 				reject("unauthenticated", 401)
 				return
 			}
-			// create/delete/reset/list require ADMIN or OWNER
 			if strings.Contains(q, "createuser") || strings.Contains(q, "deleteuser") || strings.Contains(q, "resetuserpassword") || strings.Contains(q, "users") {
-				if callerRole != "ADMIN" && callerRole != "OWNER" {
+				if cRole != "ADMIN" && cRole != "OWNER" {
 					reject("forbidden: insufficient permissions", 403)
 					return
+				}
+			}
+
+			if strings.Contains(q, "createuser") {
+				if input, ok := variables["input"].(map[string]any); ok {
+					if rawRole, exists := input["role"]; exists {
+						var roleVal string
+						switch v := rawRole.(type) {
+						case string:
+							roleVal = v
+						default:
+							roleVal = fmt.Sprintf("%v", v)
+						}
+						roleVal = strings.ToUpper(strings.TrimSpace(roleVal))
+						log.Printf("auth: createUser detected; callerRole=%q roleRequested=%q", cRole, roleVal)
+						if roleVal == "OWNER" && cRole != "OWNER" {
+							reject("forbidden: only OWNER can assign OWNER role", 403)
+							return
+						}
+					}
 				}
 			}
 
 			// updateUser: if role change to OWNER -> only OWNER allowed; if any role change -> ADMIN/OWNER only
 			if strings.Contains(q, "updateuser") {
 				if input, ok := variables["input"].(map[string]any); ok {
-					if roleVal, ok := input["role"].(string); ok {
-						if strings.ToUpper(roleVal) == "OWNER" && callerRole != "OWNER" {
+					// Normalize/inspect role value from variables. Some clients may encode enums differently,
+					// so accept string or other types and coerce to string for comparison.
+					if rawRole, exists := input["role"]; exists {
+						var roleVal string
+						switch v := rawRole.(type) {
+						case string:
+							roleVal = v
+						default:
+							roleVal = fmt.Sprintf("%v", v)
+						}
+						roleVal = strings.ToUpper(strings.TrimSpace(roleVal))
+						log.Printf("auth: updateUser detected; callerRole=%q roleRequested=%q", cRole, roleVal)
+						if roleVal == "OWNER" && cRole != "OWNER" {
 							reject("forbidden: only OWNER can assign OWNER role", 403)
 							return
 						}
-						if callerRole != "ADMIN" && callerRole != "OWNER" {
+						if cRole != "ADMIN" && cRole != "OWNER" {
 							reject("forbidden: insufficient permissions to change roles", 403)
 							return
 						}
@@ -201,9 +265,8 @@ func main() {
 			}
 		}
 
-		// propagate caller info from proxy headers into context for resolvers
-		ctx := context.WithValue(r.Context(), "callerRole", r.Header.Get("X-User-Role"))
-		ctx = context.WithValue(ctx, "callerId", r.Header.Get("X-User-Id"))
+		ctx := context.WithValue(r.Context(), "callerRole", cRole)
+		ctx = context.WithValue(ctx, "callerId", cId)
 		srv.ServeHTTP(w, r.WithContext(ctx))
 	})))
 

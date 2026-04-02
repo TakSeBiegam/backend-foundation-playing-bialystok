@@ -37,6 +37,26 @@ type Partner {
   description: String
 }
 
+type OfferBlock {
+  id: ID!
+  section: String!
+  blockType: String!
+  badge: String
+  title: String
+  subtitle: String
+  content: String
+  items: [String!]!
+  highlight: String
+  imageUrl: String
+  imageAlt: String
+  ctaLabel: String
+  ctaHref: String
+  isFeatured: Boolean!
+  order: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
 type ContactSubmissionNote {
   id: ID!
   submissionId: ID!
@@ -67,6 +87,8 @@ type Query {
   event(id: ID!): Event
   partners: [Partner!]!
   partner(id: ID!): Partner
+  offerBlocks(section: String): [OfferBlock!]!
+  offerBlock(id: ID!): OfferBlock
   contactSubmissions(archived: Boolean = false): [ContactSubmission!]!
   contactSubmission(id: ID!): ContactSubmission
   users: [User!]!
@@ -110,6 +132,40 @@ input UpdatePartnerInput {
   logoUrl: String
   websiteUrl: String
   description: String
+}
+
+input CreateOfferBlockInput {
+  section: String!
+  blockType: String!
+  badge: String
+  title: String
+  subtitle: String
+  content: String
+  items: [String!] = []
+  highlight: String
+  imageUrl: String
+  imageAlt: String
+  ctaLabel: String
+  ctaHref: String
+  isFeatured: Boolean = false
+  order: Int = 0
+}
+
+input UpdateOfferBlockInput {
+  section: String
+  blockType: String
+  badge: String
+  title: String
+  subtitle: String
+  content: String
+  items: [String!]
+  highlight: String
+  imageUrl: String
+  imageAlt: String
+  ctaLabel: String
+  ctaHref: String
+  isFeatured: Boolean
+  order: Int
 }
 
 input CreateUserInput {
@@ -160,6 +216,10 @@ type Mutation {
   createPartner(input: CreatePartnerInput!): Partner!
   updatePartner(id: ID!, input: UpdatePartnerInput!): Partner!
   deletePartner(id: ID!): Boolean!
+
+  createOfferBlock(input: CreateOfferBlockInput!): OfferBlock!
+  updateOfferBlock(id: ID!, input: UpdateOfferBlockInput!): OfferBlock!
+  deleteOfferBlock(id: ID!): Boolean!
 
   createUser(input: CreateUserInput!): User!
   updateUser(id: ID!, input: UpdateUserInput!): User!

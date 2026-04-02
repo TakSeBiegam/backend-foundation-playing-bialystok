@@ -61,6 +61,23 @@ type CreateEventInput struct {
 	ImageURL    *string `json:"imageUrl,omitempty"`
 }
 
+type CreateOfferBlockInput struct {
+	Section    string   `json:"section"`
+	BlockType  string   `json:"blockType"`
+	Badge      *string  `json:"badge,omitempty"`
+	Title      *string  `json:"title,omitempty"`
+	Subtitle   *string  `json:"subtitle,omitempty"`
+	Content    *string  `json:"content,omitempty"`
+	Items      []string `json:"items,omitempty"`
+	Highlight  *string  `json:"highlight,omitempty"`
+	ImageURL   *string  `json:"imageUrl,omitempty"`
+	ImageAlt   *string  `json:"imageAlt,omitempty"`
+	CtaLabel   *string  `json:"ctaLabel,omitempty"`
+	CtaHref    *string  `json:"ctaHref,omitempty"`
+	IsFeatured *bool    `json:"isFeatured,omitempty"`
+	Order      *int32   `json:"order,omitempty"`
+}
+
 type CreatePartnerInput struct {
 	Name        string  `json:"name"`
 	LogoURL     *string `json:"logoUrl,omitempty"`
@@ -90,6 +107,26 @@ type Event struct {
 type Mutation struct {
 }
 
+type OfferBlock struct {
+	ID         string   `json:"id"`
+	Section    string   `json:"section"`
+	BlockType  string   `json:"blockType"`
+	Badge      *string  `json:"badge,omitempty"`
+	Title      *string  `json:"title,omitempty"`
+	Subtitle   *string  `json:"subtitle,omitempty"`
+	Content    *string  `json:"content,omitempty"`
+	Items      []string `json:"items"`
+	Highlight  *string  `json:"highlight,omitempty"`
+	ImageURL   *string  `json:"imageUrl,omitempty"`
+	ImageAlt   *string  `json:"imageAlt,omitempty"`
+	CtaLabel   *string  `json:"ctaLabel,omitempty"`
+	CtaHref    *string  `json:"ctaHref,omitempty"`
+	IsFeatured bool     `json:"isFeatured"`
+	Order      int32    `json:"order"`
+	CreatedAt  string   `json:"createdAt"`
+	UpdatedAt  string   `json:"updatedAt"`
+}
+
 type Partner struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
@@ -114,6 +151,23 @@ type UpdateEventInput struct {
 	Time        *string `json:"time,omitempty"`
 	FacebookURL *string `json:"facebookUrl,omitempty"`
 	ImageURL    *string `json:"imageUrl,omitempty"`
+}
+
+type UpdateOfferBlockInput struct {
+	Section    *string  `json:"section,omitempty"`
+	BlockType  *string  `json:"blockType,omitempty"`
+	Badge      *string  `json:"badge,omitempty"`
+	Title      *string  `json:"title,omitempty"`
+	Subtitle   *string  `json:"subtitle,omitempty"`
+	Content    *string  `json:"content,omitempty"`
+	Items      []string `json:"items,omitempty"`
+	Highlight  *string  `json:"highlight,omitempty"`
+	ImageURL   *string  `json:"imageUrl,omitempty"`
+	ImageAlt   *string  `json:"imageAlt,omitempty"`
+	CtaLabel   *string  `json:"ctaLabel,omitempty"`
+	CtaHref    *string  `json:"ctaHref,omitempty"`
+	IsFeatured *bool    `json:"isFeatured,omitempty"`
+	Order      *int32   `json:"order,omitempty"`
 }
 
 type UpdatePartnerInput struct {
