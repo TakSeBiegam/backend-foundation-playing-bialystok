@@ -21,10 +21,17 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 	var emailNull, usernameNull *string
 	var passwordHash, dbRole string
 	var createdAt time.Time
+	identifier := normalizeSignInIdentifier(input.Identifier)
+	if identifier == "" {
+		return nil, fmt.Errorf("invalid credentials")
+	}
 
 	err := r.DB.QueryRow(ctx,
-		"SELECT id, email, username, password_hash, role, created_at FROM users WHERE email = $1",
-		input.Email,
+		`SELECT id, email, username, password_hash, role, created_at
+		 FROM users
+		 WHERE LOWER(COALESCE(email, '')) = $1 OR LOWER(COALESCE(username, '')) = $1
+		 LIMIT 1`,
+		identifier,
 	).Scan(&id, &emailNull, &usernameNull, &passwordHash, &dbRole, &createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid credentials")
@@ -34,12 +41,35 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
+	role := roleFromDB(dbRole)
+	userLabel := id
+	if usernameNull != nil && strings.TrimSpace(*usernameNull) != "" {
+		userLabel = strings.TrimSpace(*usernameNull)
+	} else if emailNull != nil && strings.TrimSpace(*emailNull) != "" {
+		userLabel = strings.TrimSpace(*emailNull)
+	}
+
+	if err := r.insertAuditLog(ctx, auditLogEntry{
+		ActorUserID: &id,
+		ActorRole:   &role,
+		Resource:    model.AdminResourceAuth,
+		Action:      model.AuditActionLogin,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Logowanie do panelu: %s", userLabel),
+		Details: map[string]any{
+			"email":    emailNull,
+			"username": usernameNull,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
 	return &model.AuthPayload{
 		User: &model.User{
 			ID:        id,
 			Email:     emailNull,
 			Username:  usernameNull,
-			Role:      roleFromDB(dbRole),
+			Role:      role,
 			CreatedAt: createdAt.Format(time.RFC3339),
 		},
 	}, nil
@@ -103,27 +133,301 @@ func (r *mutationResolver) CreateContactSubmission(ctx context.Context, input mo
 
 // MarkContactSubmissionRead is the resolver for the markContactSubmissionRead field.
 func (r *mutationResolver) MarkContactSubmissionRead(ctx context.Context, id string, readerUserID string) (*model.ContactSubmission, error) {
-	panic(fmt.Errorf("not implemented: MarkContactSubmissionRead - markContactSubmissionRead"))
+	if err := r.requirePermission(ctx, model.AdminResourceMessages, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	reader, err := r.resolveActingUser(ctx, readerUserID)
+	if err != nil {
+		return nil, err
+	}
+	if reader == nil {
+		return nil, fmt.Errorf("reader user not found")
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin mark contact submission read tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", id)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := tx.Exec(ctx,
+		`UPDATE contact_submissions
+		 SET is_read = TRUE,
+		     read_at = NOW(),
+		     read_by_user_id = $1,
+		     updated_at = NOW()
+		 WHERE id = $2`,
+		reader.ID,
+		id,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("mark contact submission read: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return nil, fmt.Errorf("contact submission not found")
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceMessages,
+		Action:      model.AuditActionMarkRead,
+		ResourceID:  &id,
+		Summary: fmt.Sprintf(
+			"Oznaczono wiadomość jako przeczytaną: %s",
+			auditSnapshotLabel(before, id, "first_name", "last_name"),
+		),
+		Details: map[string]any{
+			"before":       before,
+			"after":        after,
+			"readerUserId": reader.ID,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit mark contact submission read tx: %w", err)
+	}
+
+	return r.getContactSubmissionByID(ctx, id, true)
 }
 
 // MarkContactSubmissionUnread is the resolver for the markContactSubmissionUnread field.
 func (r *mutationResolver) MarkContactSubmissionUnread(ctx context.Context, id string) (*model.ContactSubmission, error) {
-	panic(fmt.Errorf("not implemented: MarkContactSubmissionUnread - markContactSubmissionUnread"))
+	if err := r.requirePermission(ctx, model.AdminResourceMessages, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin mark contact submission unread tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", id)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := tx.Exec(ctx,
+		`UPDATE contact_submissions
+		 SET is_read = FALSE,
+		     read_at = NULL,
+		     read_by_user_id = NULL,
+		     updated_at = NOW()
+		 WHERE id = $1`,
+		id,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("mark contact submission unread: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return nil, fmt.Errorf("contact submission not found")
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceMessages,
+		Action:      model.AuditActionMarkUnread,
+		ResourceID:  &id,
+		Summary: fmt.Sprintf(
+			"Przywrócono wiadomość do nieprzeczytanych: %s",
+			auditSnapshotLabel(before, id, "first_name", "last_name"),
+		),
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit mark contact submission unread tx: %w", err)
+	}
+
+	return r.getContactSubmissionByID(ctx, id, true)
 }
 
 // AddContactSubmissionNote is the resolver for the addContactSubmissionNote field.
 func (r *mutationResolver) AddContactSubmissionNote(ctx context.Context, input model.AddContactSubmissionNoteInput) (*model.ContactSubmissionNote, error) {
-	panic(fmt.Errorf("not implemented: AddContactSubmissionNote - addContactSubmissionNote"))
+	if err := r.requirePermission(ctx, model.AdminResourceMessages, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	noteText := strings.TrimSpace(input.Note)
+	if noteText == "" {
+		return nil, fmt.Errorf("note cannot be empty")
+	}
+
+	author, err := r.resolveActingUser(ctx, input.AuthorUserID)
+	if err != nil {
+		return nil, err
+	}
+	if author == nil {
+		return nil, fmt.Errorf("note author not found")
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin add contact submission note tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", input.SubmissionID)
+	if err != nil {
+		return nil, err
+	}
+	if before == nil {
+		return nil, fmt.Errorf("contact submission not found")
+	}
+
+	var note model.ContactSubmissionNote
+	var createdAt time.Time
+	var updatedAt time.Time
+	err = tx.QueryRow(ctx,
+		`INSERT INTO contact_submission_notes (submission_id, author_user_id, note)
+		 VALUES ($1, $2, $3)
+		 RETURNING id, created_at, updated_at`,
+		input.SubmissionID,
+		author.ID,
+		noteText,
+	).Scan(&note.ID, &createdAt, &updatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("add contact submission note: %w", err)
+	}
+
+	result, err := tx.Exec(ctx,
+		`UPDATE contact_submissions
+		 SET last_note_at = NOW(),
+		     updated_at = NOW()
+		 WHERE id = $1`,
+		input.SubmissionID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("update contact submission note timestamp: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return nil, fmt.Errorf("contact submission not found")
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", input.SubmissionID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceMessages,
+		Action:      model.AuditActionAddNote,
+		ResourceID:  &input.SubmissionID,
+		Summary: fmt.Sprintf(
+			"Dodano notatkę do wiadomości: %s",
+			auditSnapshotLabel(before, input.SubmissionID, "first_name", "last_name"),
+		),
+		Details: map[string]any{
+			"before":       before,
+			"after":        after,
+			"authorUserId": author.ID,
+			"note":         noteText,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit add contact submission note tx: %w", err)
+	}
+
+	note.SubmissionID = input.SubmissionID
+	note.Note = noteText
+	note.Author = author
+	note.CreatedAt = createdAt.Format(time.RFC3339)
+	note.UpdatedAt = updatedAt.Format(time.RFC3339)
+
+	return &note, nil
 }
 
 // ArchiveContactSubmission is the resolver for the archiveContactSubmission field.
 func (r *mutationResolver) ArchiveContactSubmission(ctx context.Context, id string, archived bool) (*model.ContactSubmission, error) {
-	_, err := r.DB.Exec(ctx,
+	if err := r.requirePermission(ctx, model.AdminResourceMessages, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin archive contact submission tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := tx.Exec(ctx,
 		`UPDATE contact_submissions SET archived = $1, updated_at = NOW() WHERE id = $2`,
 		archived, id,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, fmt.Errorf("archive contact submission: %w", err)
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "contact_submissions", id)
+	if err != nil {
+		return nil, err
+	}
+
+	action := model.AuditActionArchive
+	summaryVerb := "Zarchiwizowano"
+	if !archived {
+		action = model.AuditActionUnarchive
+		summaryVerb = "Przywrócono"
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceMessages,
+		Action:      action,
+		ResourceID:  &id,
+		Summary: fmt.Sprintf(
+			"%s wiadomość kontaktową: %s",
+			summaryVerb,
+			auditSnapshotLabel(before, id, "first_name", "last_name"),
+		),
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit archive contact submission tx: %w", err)
 	}
 
 	return r.getContactSubmissionByID(ctx, id, true)
@@ -131,9 +435,20 @@ func (r *mutationResolver) ArchiveContactSubmission(ctx context.Context, id stri
 
 // CreateEvent is the resolver for the createEvent field.
 func (r *mutationResolver) CreateEvent(ctx context.Context, input model.CreateEventInput) (*model.Event, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceEvents, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin create event tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	var id string
 	var createdAt time.Time
-	err := r.DB.QueryRow(ctx,
+	err = tx.QueryRow(ctx,
 		`INSERT INTO events (title, description, date, location, time, facebook_url, image_url)
 		 VALUES ($1,$2,$3,$4,$5,$6,$7)
 		 RETURNING id, created_at`,
@@ -143,6 +458,30 @@ func (r *mutationResolver) CreateEvent(ctx context.Context, input model.CreateEv
 	if err != nil {
 		return nil, fmt.Errorf("create event: %w", err)
 	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "events", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceEvents,
+		Action:      model.AuditActionCreate,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Utworzono wydarzenie: %s", strings.TrimSpace(input.Title)),
+		Details: map[string]any{
+			"after": after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create event tx: %w", err)
+	}
+
 	return &model.Event{
 		ID:          id,
 		Title:       input.Title,
@@ -158,7 +497,23 @@ func (r *mutationResolver) CreateEvent(ctx context.Context, input model.CreateEv
 
 // UpdateEvent is the resolver for the updateEvent field.
 func (r *mutationResolver) UpdateEvent(ctx context.Context, id string, input model.UpdateEventInput) (*model.Event, error) {
-	row := r.DB.QueryRow(ctx,
+	if err := r.requirePermission(ctx, model.AdminResourceEvents, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin update event tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "events", id)
+	if err != nil {
+		return nil, err
+	}
+
+	row := tx.QueryRow(ctx,
 		`UPDATE events SET
 		   title        = COALESCE($1, title),
 		   description  = COALESCE($2, description),
@@ -173,22 +528,101 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id string, input mod
 		input.Title, input.Description, input.Date, input.Location,
 		input.Time, input.FacebookURL, input.ImageURL, id,
 	)
-	return scanEvent(row)
+	updatedEvent, err := scanEvent(row)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "events", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceEvents,
+		Action:      model.AuditActionUpdate,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Zaktualizowano wydarzenie: %s", auditSnapshotLabel(after, updatedEvent.Title, "title")),
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit update event tx: %w", err)
+	}
+
+	return updatedEvent, nil
 }
 
 // DeleteEvent is the resolver for the deleteEvent field.
 func (r *mutationResolver) DeleteEvent(ctx context.Context, id string) (bool, error) {
-	tag, err := r.DB.Exec(ctx, "DELETE FROM events WHERE id = $1", id)
+	if err := r.requirePermission(ctx, model.AdminResourceEvents, permissionActionDelete); err != nil {
+		return false, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin delete event tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "events", id)
+	if err != nil {
+		return false, err
+	}
+
+	tag, err := tx.Exec(ctx, "DELETE FROM events WHERE id = $1", id)
 	if err != nil {
 		return false, fmt.Errorf("delete event: %w", err)
 	}
-	return tag.RowsAffected() > 0, nil
+	deleted := tag.RowsAffected() > 0
+	if !deleted {
+		return false, nil
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceEvents,
+		Action:      model.AuditActionDelete,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Usunięto wydarzenie: %s", auditSnapshotLabel(before, id, "title")),
+		Details: map[string]any{
+			"before": before,
+		},
+	}); err != nil {
+		return false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return false, fmt.Errorf("commit delete event tx: %w", err)
+	}
+
+	return true, nil
 }
 
 // CreatePartner is the resolver for the createPartner field.
 func (r *mutationResolver) CreatePartner(ctx context.Context, input model.CreatePartnerInput) (*model.Partner, error) {
+	if err := r.requirePermission(ctx, model.AdminResourcePartners, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin create partner tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	var id string
-	err := r.DB.QueryRow(ctx,
+	err = tx.QueryRow(ctx,
 		`INSERT INTO partners (name, logo_url, website_url, description)
 		 VALUES ($1,$2,$3,$4) RETURNING id`,
 		input.Name, input.LogoURL, input.WebsiteURL, input.Description,
@@ -196,6 +630,30 @@ func (r *mutationResolver) CreatePartner(ctx context.Context, input model.Create
 	if err != nil {
 		return nil, fmt.Errorf("create partner: %w", err)
 	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "partners", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourcePartners,
+		Action:      model.AuditActionCreate,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Dodano partnera: %s", strings.TrimSpace(input.Name)),
+		Details: map[string]any{
+			"after": after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create partner tx: %w", err)
+	}
+
 	return &model.Partner{
 		ID:          id,
 		Name:        input.Name,
@@ -207,7 +665,23 @@ func (r *mutationResolver) CreatePartner(ctx context.Context, input model.Create
 
 // UpdatePartner is the resolver for the updatePartner field.
 func (r *mutationResolver) UpdatePartner(ctx context.Context, id string, input model.UpdatePartnerInput) (*model.Partner, error) {
-	row := r.DB.QueryRow(ctx,
+	if err := r.requirePermission(ctx, model.AdminResourcePartners, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin update partner tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "partners", id)
+	if err != nil {
+		return nil, err
+	}
+
+	row := tx.QueryRow(ctx,
 		`UPDATE partners SET
 		   name        = COALESCE($1, name),
 		   logo_url    = COALESCE($2, logo_url),
@@ -218,22 +692,104 @@ func (r *mutationResolver) UpdatePartner(ctx context.Context, id string, input m
 		 RETURNING id, name, logo_url, website_url, description`,
 		input.Name, input.LogoURL, input.WebsiteURL, input.Description, id,
 	)
-	return scanPartner(row)
+	updatedPartner, err := scanPartner(row)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "partners", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourcePartners,
+		Action:      model.AuditActionUpdate,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Zaktualizowano partnera: %s", auditSnapshotLabel(after, updatedPartner.Name, "name")),
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit update partner tx: %w", err)
+	}
+
+	return updatedPartner, nil
 }
 
 // DeletePartner is the resolver for the deletePartner field.
 func (r *mutationResolver) DeletePartner(ctx context.Context, id string) (bool, error) {
-	tag, err := r.DB.Exec(ctx, "DELETE FROM partners WHERE id = $1", id)
+	if err := r.requirePermission(ctx, model.AdminResourcePartners, permissionActionDelete); err != nil {
+		return false, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin delete partner tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "partners", id)
+	if err != nil {
+		return false, err
+	}
+
+	tag, err := tx.Exec(ctx, "DELETE FROM partners WHERE id = $1", id)
 	if err != nil {
 		return false, fmt.Errorf("delete partner: %w", err)
 	}
-	return tag.RowsAffected() > 0, nil
+	deleted := tag.RowsAffected() > 0
+	if !deleted {
+		return false, nil
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourcePartners,
+		Action:      model.AuditActionDelete,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Usunięto partnera: %s", auditSnapshotLabel(before, id, "name")),
+		Details: map[string]any{
+			"before": before,
+		},
+	}); err != nil {
+		return false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return false, fmt.Errorf("commit delete partner tx: %w", err)
+	}
+
+	return true, nil
 }
 
 // CreateOfferBlock is the resolver for the createOfferBlock field.
 func (r *mutationResolver) CreateOfferBlock(ctx context.Context, input model.CreateOfferBlockInput) (*model.OfferBlock, error) {
-	row := r.DB.QueryRow(ctx,
+	resource := adminResourceForPageKey(input.PageKey)
+	if err := r.requirePermission(ctx, resource, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin create offer block tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	row := tx.QueryRow(ctx,
 		`INSERT INTO offer_blocks (
+			page_key,
+			category_key,
 			section,
 			block_type,
 			badge,
@@ -249,9 +805,11 @@ func (r *mutationResolver) CreateOfferBlock(ctx context.Context, input model.Cre
 			is_featured,
 			display_order
 		)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
 		RETURNING
 			id,
+			page_key,
+			category_key,
 			section,
 			block_type,
 			badge,
@@ -268,6 +826,8 @@ func (r *mutationResolver) CreateOfferBlock(ctx context.Context, input model.Cre
 			display_order,
 			created_at,
 			updated_at`,
+		normalizeOfferBlockPageKey(input.PageKey),
+		normalizeNullableString(input.CategoryKey),
 		normalizeRequiredString(input.Section),
 		normalizeRequiredString(input.BlockType),
 		normalizeNullableString(input.Badge),
@@ -283,36 +843,107 @@ func (r *mutationResolver) CreateOfferBlock(ctx context.Context, input model.Cre
 		input.IsFeatured,
 		input.Order,
 	)
-	return scanOfferBlock(row)
+	createdBlock, err := scanOfferBlock(row)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "offer_blocks", createdBlock.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    resource,
+		Action:      model.AuditActionCreate,
+		ResourceID:  &createdBlock.ID,
+		Summary: fmt.Sprintf(
+			"Dodano blok treści: %s",
+			auditSnapshotLabel(after, createdBlock.BlockType, "title", "category_key", "block_type"),
+		),
+		Details: map[string]any{
+			"after": after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create offer block tx: %w", err)
+	}
+
+	return createdBlock, nil
 }
 
 // UpdateOfferBlock is the resolver for the updateOfferBlock field.
 func (r *mutationResolver) UpdateOfferBlock(ctx context.Context, id string, input model.UpdateOfferBlockInput) (*model.OfferBlock, error) {
+	existingBlock, err := r.getOfferBlockByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existingBlock == nil {
+		return nil, fmt.Errorf("offer block not found")
+	}
+
+	currentResource := adminResourceForPageKey(existingBlock.PageKey)
+	if err := r.requirePermission(ctx, currentResource, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	targetPageKey := existingBlock.PageKey
+	if input.PageKey != nil {
+		targetPageKey = normalizeOfferBlockPageKey(*input.PageKey)
+	}
+	targetResource := adminResourceForPageKey(targetPageKey)
+	if targetResource != currentResource {
+		if err := r.requirePermission(ctx, targetResource, permissionActionWrite); err != nil {
+			return nil, err
+		}
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin update offer block tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "offer_blocks", id)
+	if err != nil {
+		return nil, err
+	}
+
 	var items []string
 	if input.Items != nil {
 		items = cleanStringSlice(input.Items)
 	}
 
-	row := r.DB.QueryRow(ctx,
+	row := tx.QueryRow(ctx,
 		`UPDATE offer_blocks SET
-			section = COALESCE($1, section),
-			block_type = COALESCE($2, block_type),
-			badge = COALESCE($3, badge),
-			title = COALESCE($4, title),
-			subtitle = COALESCE($5, subtitle),
-			content = COALESCE($6, content),
-			items = COALESCE($7::text[], items),
-			highlight = COALESCE($8, highlight),
-			image_url = COALESCE($9, image_url),
-			image_alt = COALESCE($10, image_alt),
-			cta_label = COALESCE($11, cta_label),
-			cta_href = COALESCE($12, cta_href),
-			is_featured = COALESCE($13, is_featured),
-			display_order = COALESCE($14, display_order),
+			page_key = COALESCE($1, page_key),
+			category_key = COALESCE($2, category_key),
+			section = COALESCE($3, section),
+			block_type = COALESCE($4, block_type),
+			badge = COALESCE($5, badge),
+			title = COALESCE($6, title),
+			subtitle = COALESCE($7, subtitle),
+			content = COALESCE($8, content),
+			items = COALESCE($9::text[], items),
+			highlight = COALESCE($10, highlight),
+			image_url = COALESCE($11, image_url),
+			image_alt = COALESCE($12, image_alt),
+			cta_label = COALESCE($13, cta_label),
+			cta_href = COALESCE($14, cta_href),
+			is_featured = COALESCE($15, is_featured),
+			display_order = COALESCE($16, display_order),
 			updated_at = NOW()
-		WHERE id = $15
+		WHERE id = $17
 		RETURNING
 			id,
+			page_key,
+			category_key,
 			section,
 			block_type,
 			badge,
@@ -329,6 +960,8 @@ func (r *mutationResolver) UpdateOfferBlock(ctx context.Context, id string, inpu
 			display_order,
 			created_at,
 			updated_at`,
+		normalizeNullableOfferBlockPageKey(input.PageKey),
+		normalizeNullableString(input.CategoryKey),
 		normalizeNullableString(input.Section),
 		normalizeNullableString(input.BlockType),
 		normalizeNullableString(input.Badge),
@@ -345,20 +978,340 @@ func (r *mutationResolver) UpdateOfferBlock(ctx context.Context, id string, inpu
 		input.Order,
 		id,
 	)
-	return scanOfferBlock(row)
+	updatedBlock, err := scanOfferBlock(row)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "offer_blocks", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    adminResourceForPageKey(updatedBlock.PageKey),
+		Action:      model.AuditActionUpdate,
+		ResourceID:  &id,
+		Summary: fmt.Sprintf(
+			"Zaktualizowano blok treści: %s",
+			auditSnapshotLabel(after, updatedBlock.BlockType, "title", "category_key", "block_type"),
+		),
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit update offer block tx: %w", err)
+	}
+
+	return updatedBlock, nil
 }
 
 // DeleteOfferBlock is the resolver for the deleteOfferBlock field.
 func (r *mutationResolver) DeleteOfferBlock(ctx context.Context, id string) (bool, error) {
-	tag, err := r.DB.Exec(ctx, "DELETE FROM offer_blocks WHERE id = $1", id)
+	pageKey, err := r.getOfferBlockPageKeyByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	resource := adminResourceForPageKey(pageKey)
+	if err := r.requirePermission(ctx, resource, permissionActionDelete); err != nil {
+		return false, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin delete offer block tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "offer_blocks", id)
+	if err != nil {
+		return false, err
+	}
+
+	tag, err := tx.Exec(ctx, "DELETE FROM offer_blocks WHERE id = $1", id)
 	if err != nil {
 		return false, fmt.Errorf("delete offer block: %w", err)
 	}
-	return tag.RowsAffected() > 0, nil
+	deleted := tag.RowsAffected() > 0
+	if !deleted {
+		return false, nil
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    resource,
+		Action:      model.AuditActionDelete,
+		ResourceID:  &id,
+		Summary: fmt.Sprintf(
+			"Usunięto blok treści: %s",
+			auditSnapshotLabel(before, id, "title", "category_key", "block_type"),
+		),
+		Details: map[string]any{
+			"before": before,
+		},
+	}); err != nil {
+		return false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return false, fmt.Errorf("commit delete offer block tx: %w", err)
+	}
+
+	return true, nil
+}
+
+// CreateBoardGame is the resolver for the createBoardGame field.
+func (r *mutationResolver) CreateBoardGame(ctx context.Context, input model.CreateBoardGameInput) (*model.BoardGame, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceCatalog, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin create board game tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	order := int32(0)
+	if input.Order != nil {
+		order = *input.Order
+	}
+
+	row := tx.QueryRow(ctx,
+		`INSERT INTO board_games (
+			title,
+			description,
+			player_bucket,
+			play_time,
+			category,
+			difficulty,
+			image_url,
+			image_alt,
+			display_order
+		)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		RETURNING
+			id,
+			title,
+			description,
+			player_bucket,
+			play_time,
+			category,
+			difficulty,
+			image_url,
+			image_alt,
+			display_order,
+			created_at,
+			updated_at`,
+		normalizeRequiredString(input.Title),
+		normalizeRequiredString(input.Description),
+		normalizeRequiredString(input.PlayerBucket),
+		normalizeNullableString(input.PlayTime),
+		normalizeNullableString(input.Category),
+		normalizeNullableBoardGameDifficulty(input.Difficulty),
+		normalizeNullableString(input.ImageURL),
+		normalizeNullableString(input.ImageAlt),
+		order,
+	)
+
+	createdGame, err := scanBoardGame(row)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "board_games", createdGame.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceCatalog,
+		Action:      model.AuditActionCreate,
+		ResourceID:  &createdGame.ID,
+		Summary:     fmt.Sprintf("Dodano planszówkę: %s", strings.TrimSpace(input.Title)),
+		Details: map[string]any{
+			"after": after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create board game tx: %w", err)
+	}
+
+	return createdGame, nil
+}
+
+// UpdateBoardGame is the resolver for the updateBoardGame field.
+func (r *mutationResolver) UpdateBoardGame(ctx context.Context, id string, input model.UpdateBoardGameInput) (*model.BoardGame, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceCatalog, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin update board game tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	clearImageURL := input.ClearImageURL != nil && *input.ClearImageURL
+	clearImageAlt := clearImageURL || (input.ClearImageAlt != nil && *input.ClearImageAlt)
+	imageURL := normalizeNullableString(input.ImageURL)
+	imageAlt := normalizeNullableString(input.ImageAlt)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "board_games", id)
+	if err != nil {
+		return nil, err
+	}
+
+	row := tx.QueryRow(ctx,
+		`UPDATE board_games SET
+			title = COALESCE($1, title),
+			description = COALESCE($2, description),
+			player_bucket = COALESCE($3, player_bucket),
+			play_time = COALESCE($4, play_time),
+			category = COALESCE($5, category),
+			difficulty = COALESCE($6, difficulty),
+			image_url = CASE WHEN $7 THEN NULL ELSE COALESCE($8, image_url) END,
+			image_alt = CASE WHEN $9 THEN NULL ELSE COALESCE($10, image_alt) END,
+			display_order = COALESCE($11, display_order),
+			updated_at = NOW()
+		WHERE id = $12
+		RETURNING
+			id,
+			title,
+			description,
+			player_bucket,
+			play_time,
+			category,
+			difficulty,
+			image_url,
+			image_alt,
+			display_order,
+			created_at,
+			updated_at`,
+		normalizeNullableString(input.Title),
+		normalizeNullableString(input.Description),
+		normalizeNullableString(input.PlayerBucket),
+		normalizeNullableString(input.PlayTime),
+		normalizeNullableString(input.Category),
+		normalizeNullableBoardGameDifficulty(input.Difficulty),
+		clearImageURL,
+		imageURL,
+		clearImageAlt,
+		imageAlt,
+		input.Order,
+		id,
+	)
+
+	updatedGame, err := scanBoardGame(row)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "board_games", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceCatalog,
+		Action:      model.AuditActionUpdate,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Zaktualizowano planszówkę: %s", auditSnapshotLabel(after, updatedGame.Title, "title")),
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit update board game tx: %w", err)
+	}
+
+	return updatedGame, nil
+}
+
+// DeleteBoardGame is the resolver for the deleteBoardGame field.
+func (r *mutationResolver) DeleteBoardGame(ctx context.Context, id string) (bool, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceCatalog, permissionActionDelete); err != nil {
+		return false, err
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin delete board game tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "board_games", id)
+	if err != nil {
+		return false, err
+	}
+
+	tag, err := tx.Exec(ctx, "DELETE FROM board_games WHERE id = $1", id)
+	if err != nil {
+		return false, fmt.Errorf("delete board game: %w", err)
+	}
+	deleted := tag.RowsAffected() > 0
+	if !deleted {
+		return false, nil
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceCatalog,
+		Action:      model.AuditActionDelete,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Usunięto planszówkę: %s", auditSnapshotLabel(before, id, "title")),
+		Details: map[string]any{
+			"before": before,
+		},
+	}); err != nil {
+		return false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return false, fmt.Errorf("commit delete board game tx: %w", err)
+	}
+
+	return true, nil
 }
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceUsers, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	callerRole, err := currentRoleFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if input.Role == model.RoleOwner && callerRole != model.RoleOwner {
+		return nil, fmt.Errorf("forbidden: only OWNER can assign OWNER role")
+	}
+
 	plain := ""
 	if input.Password != nil && *input.Password != "" {
 		plain = *input.Password
@@ -371,15 +1324,45 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 		return nil, fmt.Errorf("hash password: %w", err)
 	}
 
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin create user tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	var id string
 	var createdAt time.Time
-	err = r.DB.QueryRow(ctx,
+	err = tx.QueryRow(ctx,
 		`INSERT INTO users (email, username, password_hash, role)
 		 VALUES ($1,$2,$3,$4) RETURNING id, created_at`,
 		input.Email, input.Username, string(hash), roleToDB(input.Role),
 	).Scan(&id, &createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("create user: %w", err)
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "users", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceUsers,
+		Action:      model.AuditActionCreate,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Utworzono użytkownika: %s", auditSnapshotLabel(after, id, "username", "email")),
+		Details: map[string]any{
+			"after": after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create user tx: %w", err)
 	}
 
 	return &model.User{
@@ -393,6 +1376,28 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input model.UpdateUserInput) (*model.User, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceUsers, permissionActionWrite); err != nil {
+		return nil, err
+	}
+
+	callerRole, err := currentRoleFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	targetUser, err := r.getUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if targetUser == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	if targetUser.Role == model.RoleOwner && callerRole != model.RoleOwner {
+		return nil, fmt.Errorf("forbidden: only OWNER can manage OWNER accounts")
+	}
+	if input.Role != nil && *input.Role == model.RoleOwner && callerRole != model.RoleOwner {
+		return nil, fmt.Errorf("forbidden: only OWNER can assign OWNER role")
+	}
+
 	var newHashPtr *string
 	if input.Password != nil && *input.Password != "" {
 		h, err := bcrypt.GenerateFromPassword([]byte(*input.Password), 12)
@@ -409,7 +1414,19 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input mode
 		roleStr = &s
 	}
 
-	row := r.DB.QueryRow(ctx,
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin update user tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "users", id)
+	if err != nil {
+		return nil, err
+	}
+
+	row := tx.QueryRow(ctx,
 		`UPDATE users SET
 		   email         = COALESCE($1, email),
 		   username      = COALESCE($2, username),
@@ -420,37 +1437,305 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input mode
 		 RETURNING id, email, username, role, created_at`,
 		input.Email, input.Username, roleStr, newHashPtr, id,
 	)
-	return scanUser(row)
+	updatedUser, err := scanUser(row)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "users", id)
+	if err != nil {
+		return nil, err
+	}
+
+	action := model.AuditActionUpdate
+	summary := fmt.Sprintf("Zaktualizowano użytkownika: %s", auditSnapshotLabel(after, updatedUser.ID, "username", "email"))
+	if input.Role != nil && *input.Role != targetUser.Role {
+		action = model.AuditActionRoleChange
+		summary = fmt.Sprintf(
+			"Zmieniono rolę użytkownika %s z %s na %s",
+			auditSnapshotLabel(after, updatedUser.ID, "username", "email"),
+			targetUser.Role,
+			updatedUser.Role,
+		)
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceUsers,
+		Action:      action,
+		ResourceID:  &id,
+		Summary:     summary,
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit update user tx: %w", err)
+	}
+
+	return updatedUser, nil
 }
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, error) {
-	tag, err := r.DB.Exec(ctx, "DELETE FROM users WHERE id = $1", id)
+	if err := r.requirePermission(ctx, model.AdminResourceUsers, permissionActionDelete); err != nil {
+		return false, err
+	}
+
+	callerRole, err := currentRoleFromContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	targetUser, err := r.getUserByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	if targetUser != nil && targetUser.Role == model.RoleOwner && callerRole != model.RoleOwner {
+		return false, fmt.Errorf("forbidden: only OWNER can manage OWNER accounts")
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin delete user tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "users", id)
+	if err != nil {
+		return false, err
+	}
+
+	tag, err := tx.Exec(ctx, "DELETE FROM users WHERE id = $1", id)
 	if err != nil {
 		return false, fmt.Errorf("delete user: %w", err)
 	}
-	return tag.RowsAffected() > 0, nil
+	deleted := tag.RowsAffected() > 0
+	if !deleted {
+		return false, nil
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceUsers,
+		Action:      model.AuditActionDelete,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Usunięto użytkownika: %s", auditSnapshotLabel(before, id, "username", "email")),
+		Details: map[string]any{
+			"before": before,
+		},
+	}); err != nil {
+		return false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return false, fmt.Errorf("commit delete user tx: %w", err)
+	}
+
+	return true, nil
 }
 
 // ResetUserPassword is the resolver for the resetUserPassword field.
 func (r *mutationResolver) ResetUserPassword(ctx context.Context, id string) (string, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceUsers, permissionActionWrite); err != nil {
+		return "", err
+	}
+
+	callerRole, err := currentRoleFromContext(ctx)
+	if err != nil {
+		return "", err
+	}
+	targetUser, err := r.getUserByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	if targetUser != nil && targetUser.Role == model.RoleOwner && callerRole != model.RoleOwner {
+		return "", fmt.Errorf("forbidden: only OWNER can manage OWNER accounts")
+	}
+
 	plain := randomPassword(12)
 	hash, err := bcrypt.GenerateFromPassword([]byte(plain), 12)
 	if err != nil {
 		return "", fmt.Errorf("hash password: %w", err)
 	}
-	_, err = r.DB.Exec(ctx,
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return "", fmt.Errorf("begin reset password tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	before, err := fetchRowSnapshotTx(ctx, tx, "users", id)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := tx.Exec(ctx,
 		"UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2",
 		string(hash), id,
-	)
-	if err != nil {
+	); err != nil {
 		return "", fmt.Errorf("reset password: %w", err)
 	}
+
+	after, err := fetchRowSnapshotTx(ctx, tx, "users", id)
+	if err != nil {
+		return "", err
+	}
+
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceUsers,
+		Action:      model.AuditActionResetPassword,
+		ResourceID:  &id,
+		Summary:     fmt.Sprintf("Zresetowano hasło użytkownika: %s", auditSnapshotLabel(after, id, "username", "email")),
+		Details: map[string]any{
+			"before": before,
+			"after":  after,
+		},
+	}); err != nil {
+		return "", err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return "", fmt.Errorf("commit reset password tx: %w", err)
+	}
+
 	return plain, nil
+}
+
+// UpdateRolePermission is the resolver for the updateRolePermission field.
+func (r *mutationResolver) UpdateRolePermission(ctx context.Context, input model.UpdateRolePermissionInput) (*model.RolePermission, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceRolePermissions, permissionActionWrite); err != nil {
+		return nil, err
+	}
+	if input.Role == model.RoleOwner {
+		return nil, fmt.Errorf("owner permissions are fixed and cannot be edited")
+	}
+
+	actorUserID, actorRole := auditActorFromContext(ctx)
+	if actorUserID == nil {
+		return nil, fmt.Errorf("unauthenticated")
+	}
+
+	before, err := r.getPermissionForRole(ctx, input.Role, input.Resource)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin update role permission tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var updatedAt time.Time
+	var updatedByUserID *string
+	updatedPermission := &model.RolePermission{
+		Role:      input.Role,
+		Resource:  input.Resource,
+		CanRead:   input.CanRead,
+		CanWrite:  input.CanWrite,
+		CanDelete: input.CanDelete,
+	}
+
+	if err := tx.QueryRow(ctx,
+		`INSERT INTO role_permissions (
+			role,
+			resource,
+			can_read,
+			can_write,
+			can_delete,
+			updated_by_user_id,
+			updated_at
+		)
+		VALUES ($1,$2,$3,$4,$5,$6,NOW())
+		ON CONFLICT (role, resource)
+		DO UPDATE SET
+			can_read = EXCLUDED.can_read,
+			can_write = EXCLUDED.can_write,
+			can_delete = EXCLUDED.can_delete,
+			updated_by_user_id = EXCLUDED.updated_by_user_id,
+			updated_at = NOW()
+		RETURNING updated_at, updated_by_user_id`,
+		roleToDB(input.Role),
+		string(input.Resource),
+		input.CanRead,
+		input.CanWrite,
+		input.CanDelete,
+		*actorUserID,
+	).Scan(&updatedAt, &updatedByUserID); err != nil {
+		return nil, fmt.Errorf("update role permission: %w", err)
+	}
+
+	updatedPermission.UpdatedAt = updatedAt.Format(time.RFC3339)
+	if updatedByUserID != nil {
+		updatedBy, err := r.getUserByID(ctx, *updatedByUserID)
+		if err != nil {
+			return nil, err
+		}
+		updatedPermission.UpdatedBy = updatedBy
+	}
+
+	beforeDetails := map[string]any{
+		"role":      before.Role,
+		"resource":  before.Resource,
+		"canRead":   before.CanRead,
+		"canWrite":  before.CanWrite,
+		"canDelete": before.CanDelete,
+		"updatedAt": before.UpdatedAt,
+		"updatedBy": before.UpdatedBy,
+	}
+	afterDetails := map[string]any{
+		"role":      updatedPermission.Role,
+		"resource":  updatedPermission.Resource,
+		"canRead":   updatedPermission.CanRead,
+		"canWrite":  updatedPermission.CanWrite,
+		"canDelete": updatedPermission.CanDelete,
+		"updatedAt": updatedPermission.UpdatedAt,
+		"updatedBy": updatedPermission.UpdatedBy,
+	}
+
+	resourceID := fmt.Sprintf("%s:%s", updatedPermission.Role, updatedPermission.Resource)
+	if err := insertAuditLogWithExec(ctx, tx, auditLogEntry{
+		ActorUserID: actorUserID,
+		ActorRole:   actorRole,
+		Resource:    model.AdminResourceRolePermissions,
+		Action:      model.AuditActionPermissionChange,
+		ResourceID:  &resourceID,
+		Summary: fmt.Sprintf(
+			"Zmieniono uprawnienia roli %s dla zasobu %s",
+			updatedPermission.Role,
+			updatedPermission.Resource,
+		),
+		Details: map[string]any{
+			"before": beforeDetails,
+			"after":  afterDetails,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit update role permission tx: %w", err)
+	}
+
+	return updatedPermission, nil
 }
 
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
+	if err := r.allowPublicReadPermission(ctx, model.AdminResourceEvents); err != nil {
+		return nil, err
+	}
+
 	rows, err := r.DB.Query(ctx,
 		`SELECT id, title, description, date, location, time, facebook_url, image_url, created_at
 		 FROM events ORDER BY date DESC`)
@@ -472,6 +1757,10 @@ func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 
 // Event is the resolver for the event field.
 func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
+	if err := r.allowPublicReadPermission(ctx, model.AdminResourceEvents); err != nil {
+		return nil, err
+	}
+
 	row := r.DB.QueryRow(ctx,
 		`SELECT id, title, description, date, location, time, facebook_url, image_url, created_at
 		 FROM events WHERE id = $1`, id)
@@ -480,6 +1769,10 @@ func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, err
 
 // Partners is the resolver for the partners field.
 func (r *queryResolver) Partners(ctx context.Context) ([]*model.Partner, error) {
+	if err := r.allowPublicReadPermission(ctx, model.AdminResourcePartners); err != nil {
+		return nil, err
+	}
+
 	rows, err := r.DB.Query(ctx,
 		`SELECT id, name, logo_url, website_url, description FROM partners ORDER BY name`)
 	if err != nil {
@@ -500,15 +1793,29 @@ func (r *queryResolver) Partners(ctx context.Context) ([]*model.Partner, error) 
 
 // Partner is the resolver for the partner field.
 func (r *queryResolver) Partner(ctx context.Context, id string) (*model.Partner, error) {
+	if err := r.allowPublicReadPermission(ctx, model.AdminResourcePartners); err != nil {
+		return nil, err
+	}
+
 	row := r.DB.QueryRow(ctx,
 		`SELECT id, name, logo_url, website_url, description FROM partners WHERE id = $1`, id)
 	return scanPartner(row)
 }
 
 // OfferBlocks is the resolver for the offerBlocks field.
-func (r *queryResolver) OfferBlocks(ctx context.Context, section *string) ([]*model.OfferBlock, error) {
+func (r *queryResolver) OfferBlocks(ctx context.Context, pageKey *string, section *string) ([]*model.OfferBlock, error) {
+	resolvedPageKey := "offer"
+	if pageKey != nil && strings.TrimSpace(*pageKey) != "" {
+		resolvedPageKey = normalizeOfferBlockPageKey(*pageKey)
+	}
+	if err := r.allowPublicReadPermission(ctx, adminResourceForPageKey(resolvedPageKey)); err != nil {
+		return nil, err
+	}
+
 	query := `SELECT
 		id,
+		page_key,
+		category_key,
 		section,
 		block_type,
 		badge,
@@ -527,13 +1834,23 @@ func (r *queryResolver) OfferBlocks(ctx context.Context, section *string) ([]*mo
 		updated_at
 	FROM offer_blocks`
 
-	args := []any{}
+	args := make([]any, 0, 2)
+	conditions := make([]string, 0, 2)
+	if pageKey != nil {
+		value := normalizeOfferBlockPageKey(*pageKey)
+		conditions = append(conditions, fmt.Sprintf("LOWER(page_key) = LOWER($%d)", len(args)+1))
+		args = append(args, value)
+	}
 	if section != nil {
 		value := strings.TrimSpace(*section)
 		if value != "" {
-			query += ` WHERE LOWER(section) = LOWER($1)`
+			conditions = append(conditions, fmt.Sprintf("LOWER(section) = LOWER($%d)", len(args)+1))
 			args = append(args, value)
 		}
+	}
+
+	if len(conditions) > 0 {
+		query += ` WHERE ` + strings.Join(conditions, " AND ")
 	}
 
 	query += ` ORDER BY display_order, created_at`
@@ -558,33 +1875,103 @@ func (r *queryResolver) OfferBlocks(ctx context.Context, section *string) ([]*mo
 
 // OfferBlock is the resolver for the offerBlock field.
 func (r *queryResolver) OfferBlock(ctx context.Context, id string) (*model.OfferBlock, error) {
-	row := r.DB.QueryRow(ctx,
+	block, err := r.getOfferBlockByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if block == nil {
+		return nil, nil
+	}
+	if err := r.allowPublicReadPermission(ctx, adminResourceForPageKey(block.PageKey)); err != nil {
+		return nil, err
+	}
+
+	return block, nil
+}
+
+// BoardGames is the resolver for the boardGames field.
+func (r *queryResolver) BoardGames(ctx context.Context) ([]*model.BoardGame, error) {
+	if err := r.allowPublicReadPermission(ctx, model.AdminResourceCatalog); err != nil {
+		return nil, err
+	}
+
+	rows, err := r.DB.Query(ctx,
 		`SELECT
 			id,
-			section,
-			block_type,
-			badge,
 			title,
-			subtitle,
-			content,
-			items,
-			highlight,
+			description,
+			player_bucket,
+			play_time,
+			category,
+			difficulty,
 			image_url,
 			image_alt,
-			cta_label,
-			cta_href,
-			is_featured,
 			display_order,
 			created_at,
 			updated_at
-		 FROM offer_blocks WHERE id = $1`,
+		 FROM board_games
+		 ORDER BY display_order, title, created_at`,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list board games: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]*model.BoardGame, 0)
+	for rows.Next() {
+		item, err := scanBoardGameRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
+// BoardGamesCatalog is the resolver for the boardGamesCatalog field.
+func (r *queryResolver) BoardGamesCatalog(ctx context.Context, input *model.BoardGameCatalogInput) (*model.BoardGameCatalogPage, error) {
+	if err := r.allowPublicReadPermission(ctx, model.AdminResourceCatalog); err != nil {
+		return nil, err
+	}
+
+	return r.resolveBoardGamesCatalog(ctx, input)
+}
+
+// BoardGame is the resolver for the boardGame field.
+func (r *queryResolver) BoardGame(ctx context.Context, id string) (*model.BoardGame, error) {
+	if err := r.allowPublicReadPermission(ctx, model.AdminResourceCatalog); err != nil {
+		return nil, err
+	}
+
+	row := r.DB.QueryRow(ctx,
+		`SELECT
+			id,
+			title,
+			description,
+			player_bucket,
+			play_time,
+			category,
+			difficulty,
+			image_url,
+			image_alt,
+			display_order,
+			created_at,
+			updated_at
+		 FROM board_games
+		 WHERE id = $1`,
 		id,
 	)
-	return scanOfferBlock(row)
+
+	return scanBoardGame(row)
 }
 
 // ContactSubmissions is the resolver for the contactSubmissions field.
 func (r *queryResolver) ContactSubmissions(ctx context.Context, archived *bool) ([]*model.ContactSubmission, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceMessages, permissionActionRead); err != nil {
+		return nil, err
+	}
+
 	a := false
 	if archived != nil {
 		a = *archived
@@ -653,11 +2040,168 @@ func (r *queryResolver) ContactSubmissions(ctx context.Context, archived *bool) 
 
 // ContactSubmission is the resolver for the contactSubmission field.
 func (r *queryResolver) ContactSubmission(ctx context.Context, id string) (*model.ContactSubmission, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceMessages, permissionActionRead); err != nil {
+		return nil, err
+	}
+
 	return r.getContactSubmissionByID(ctx, id, true)
+}
+
+// MyPermissions is the resolver for the myPermissions field.
+func (r *queryResolver) MyPermissions(ctx context.Context) ([]*model.RolePermission, error) {
+	role, err := currentRoleFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.listPermissionsForRole(ctx, role)
+}
+
+// RolePermissions is the resolver for the rolePermissions field.
+func (r *queryResolver) RolePermissions(ctx context.Context) ([]*model.RolePermission, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceRolePermissions, permissionActionRead); err != nil {
+		return nil, err
+	}
+
+	return r.listAllRolePermissions(ctx)
+}
+
+// Statute is the resolver for the statute field.
+func (r *queryResolver) Statute(ctx context.Context) (*model.Statute, error) {
+	panic(fmt.Errorf("not implemented: Statute - statute"))
+}
+
+// StatuteVersions is the resolver for the statuteVersions field.
+func (r *queryResolver) StatuteVersions(ctx context.Context, limit *int32, offset *int32) ([]*model.StatuteVersion, error) {
+	panic(fmt.Errorf("not implemented: StatuteVersions - statuteVersions"))
+}
+
+// AuditLogs is the resolver for the auditLogs field.
+func (r *queryResolver) AuditLogs(ctx context.Context, input *model.AuditLogQueryInput) ([]*model.AuditLog, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceAuditLogs, permissionActionRead); err != nil {
+		return nil, err
+	}
+
+	limit := 100
+	if input != nil && input.Limit != nil && *input.Limit > 0 {
+		limit = int(*input.Limit)
+	}
+	if limit > 250 {
+		limit = 250
+	}
+
+	query := `SELECT
+		audit_logs.id,
+		audit_logs.actor_user_id,
+		audit_logs.actor_role,
+		audit_logs.resource,
+		audit_logs.action,
+		audit_logs.resource_id,
+		audit_logs.summary,
+		audit_logs.details,
+		audit_logs.created_at
+	FROM audit_logs
+	LEFT JOIN users actor_user ON actor_user.id = audit_logs.actor_user_id`
+
+	args := make([]any, 0, 4)
+	conditions := make([]string, 0, 3)
+	if input != nil && input.ActorID != nil && strings.TrimSpace(*input.ActorID) != "" {
+		searchValue := strings.TrimSpace(*input.ActorID)
+		args = append(args, searchValue)
+		exactPlaceholder := fmt.Sprintf("$%d", len(args))
+		args = append(args, "%"+strings.ToLower(searchValue)+"%")
+		likePlaceholder := fmt.Sprintf("$%d", len(args))
+		conditions = append(conditions, fmt.Sprintf(
+			`(
+				audit_logs.actor_user_id::text = %s OR
+				LOWER(COALESCE(actor_user.email, '')) LIKE %s OR
+				LOWER(COALESCE(actor_user.username, '')) LIKE %s
+			)`,
+			exactPlaceholder,
+			likePlaceholder,
+			likePlaceholder,
+		))
+	}
+	if input != nil && input.Resource != nil {
+		conditions = append(conditions, fmt.Sprintf("audit_logs.resource = $%d", len(args)+1))
+		args = append(args, string(*input.Resource))
+	}
+	if input != nil && input.Action != nil {
+		conditions = append(conditions, fmt.Sprintf("audit_logs.action = $%d", len(args)+1))
+		args = append(args, string(*input.Action))
+	}
+
+	if len(conditions) > 0 {
+		query += ` WHERE ` + strings.Join(conditions, " AND ")
+	}
+
+	args = append(args, limit)
+	query += fmt.Sprintf(` ORDER BY audit_logs.created_at DESC LIMIT $%d`, len(args))
+
+	rows, err := r.DB.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("list audit logs: %w", err)
+	}
+	defer rows.Close()
+
+	logs := make([]*model.AuditLog, 0)
+	for rows.Next() {
+		var entry model.AuditLog
+		var actorUserID *string
+		var actorRoleValue *string
+		var resourceValue string
+		var actionValue string
+		var detailsBytes []byte
+		var createdAt time.Time
+
+		if err := rows.Scan(
+			&entry.ID,
+			&actorUserID,
+			&actorRoleValue,
+			&resourceValue,
+			&actionValue,
+			&entry.ResourceID,
+			&entry.Summary,
+			&detailsBytes,
+			&createdAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan audit log: %w", err)
+		}
+
+		entry.Resource = model.AdminResource(strings.TrimSpace(resourceValue))
+		entry.Action = model.AuditAction(strings.TrimSpace(actionValue))
+		entry.CreatedAt = createdAt.Format(time.RFC3339)
+
+		if actorUserID != nil {
+			actor, err := r.getUserByID(ctx, *actorUserID)
+			if err != nil {
+				return nil, err
+			}
+			entry.Actor = actor
+		}
+
+		if actorRoleValue != nil {
+			mappedRole := roleFromDB(*actorRoleValue)
+			entry.ActorRole = &mappedRole
+		}
+
+		if len(detailsBytes) > 0 {
+			details := string(detailsBytes)
+			entry.Details = &details
+		}
+
+		logs = append(logs, &entry)
+	}
+
+	return logs, nil
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	if err := r.requirePermission(ctx, model.AdminResourceUsers, permissionActionRead); err != nil {
+		return nil, err
+	}
+
 	rows, err := r.DB.Query(ctx,
 		`SELECT id, email, username, role, created_at FROM users ORDER BY created_at`)
 	if err != nil {
@@ -678,12 +2222,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	// Resolve caller id from context (set by HTTP middleware) and return that user.
-	callerId, _ := ctx.Value("callerId").(string)
-	if callerId == "" {
-		return nil, nil
-	}
-	return r.getUserByID(ctx, callerId)
+	return r.resolveContextUser(ctx)
 }
 
 // Mutation returns MutationResolver implementation.

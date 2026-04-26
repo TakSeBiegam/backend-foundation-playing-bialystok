@@ -15,8 +15,68 @@ type AddContactSubmissionNoteInput struct {
 	Note         string `json:"note"`
 }
 
+type AuditLog struct {
+	ID         string        `json:"id"`
+	Actor      *User         `json:"actor,omitempty"`
+	ActorRole  *Role         `json:"actorRole,omitempty"`
+	Resource   AdminResource `json:"resource"`
+	Action     AuditAction   `json:"action"`
+	ResourceID *string       `json:"resourceId,omitempty"`
+	Summary    string        `json:"summary"`
+	Details    *string       `json:"details,omitempty"`
+	CreatedAt  string        `json:"createdAt"`
+}
+
+type AuditLogQueryInput struct {
+	Limit    *int32         `json:"limit,omitempty"`
+	ActorID  *string        `json:"actorId,omitempty"`
+	Resource *AdminResource `json:"resource,omitempty"`
+	Action   *AuditAction   `json:"action,omitempty"`
+}
+
 type AuthPayload struct {
 	User *User `json:"user"`
+}
+
+type BoardGame struct {
+	ID           string               `json:"id"`
+	Title        string               `json:"title"`
+	Description  string               `json:"description"`
+	PlayerBucket string               `json:"playerBucket"`
+	PlayTime     *string              `json:"playTime,omitempty"`
+	Category     *string              `json:"category,omitempty"`
+	Difficulty   *BoardGameDifficulty `json:"difficulty,omitempty"`
+	ImageURL     *string              `json:"imageUrl,omitempty"`
+	ImageAlt     *string              `json:"imageAlt,omitempty"`
+	Order        int32                `json:"order"`
+	CreatedAt    string               `json:"createdAt"`
+	UpdatedAt    string               `json:"updatedAt"`
+}
+
+type BoardGameCatalogFilterInput struct {
+	Search       *string  `json:"search,omitempty"`
+	PlayerBucket *string  `json:"playerBucket,omitempty"`
+	Category     *string  `json:"category,omitempty"`
+	Difficulty   *string  `json:"difficulty,omitempty"`
+	Difficulties []string `json:"difficulties,omitempty"`
+}
+
+type BoardGameCatalogInput struct {
+	Filter *BoardGameCatalogFilterInput `json:"filter,omitempty"`
+	Sort   *BoardGameSortMode           `json:"sort,omitempty"`
+	Limit  *int32                       `json:"limit,omitempty"`
+	Offset *int32                       `json:"offset,omitempty"`
+}
+
+type BoardGameCatalogPage struct {
+	Items                  []*BoardGame `json:"items"`
+	TotalCount             int32        `json:"totalCount"`
+	HasMore                bool         `json:"hasMore"`
+	NextOffset             *int32       `json:"nextOffset,omitempty"`
+	Categories             []string     `json:"categories"`
+	Difficulties           []string     `json:"difficulties"`
+	CatalogTotalCount      int32        `json:"catalogTotalCount"`
+	CatalogWithImagesCount int32        `json:"catalogWithImagesCount"`
 }
 
 type ContactSubmission struct {
@@ -44,6 +104,18 @@ type ContactSubmissionNote struct {
 	UpdatedAt    string `json:"updatedAt"`
 }
 
+type CreateBoardGameInput struct {
+	Title        string               `json:"title"`
+	Description  string               `json:"description"`
+	PlayerBucket string               `json:"playerBucket"`
+	PlayTime     *string              `json:"playTime,omitempty"`
+	Category     *string              `json:"category,omitempty"`
+	Difficulty   *BoardGameDifficulty `json:"difficulty,omitempty"`
+	ImageURL     *string              `json:"imageUrl,omitempty"`
+	ImageAlt     *string              `json:"imageAlt,omitempty"`
+	Order        *int32               `json:"order,omitempty"`
+}
+
 type CreateContactSubmissionInput struct {
 	FirstName string  `json:"firstName"`
 	LastName  string  `json:"lastName"`
@@ -62,20 +134,22 @@ type CreateEventInput struct {
 }
 
 type CreateOfferBlockInput struct {
-	Section    string   `json:"section"`
-	BlockType  string   `json:"blockType"`
-	Badge      *string  `json:"badge,omitempty"`
-	Title      *string  `json:"title,omitempty"`
-	Subtitle   *string  `json:"subtitle,omitempty"`
-	Content    *string  `json:"content,omitempty"`
-	Items      []string `json:"items,omitempty"`
-	Highlight  *string  `json:"highlight,omitempty"`
-	ImageURL   *string  `json:"imageUrl,omitempty"`
-	ImageAlt   *string  `json:"imageAlt,omitempty"`
-	CtaLabel   *string  `json:"ctaLabel,omitempty"`
-	CtaHref    *string  `json:"ctaHref,omitempty"`
-	IsFeatured *bool    `json:"isFeatured,omitempty"`
-	Order      *int32   `json:"order,omitempty"`
+	PageKey     string   `json:"pageKey"`
+	CategoryKey *string  `json:"categoryKey,omitempty"`
+	Section     string   `json:"section"`
+	BlockType   string   `json:"blockType"`
+	Badge       *string  `json:"badge,omitempty"`
+	Title       *string  `json:"title,omitempty"`
+	Subtitle    *string  `json:"subtitle,omitempty"`
+	Content     *string  `json:"content,omitempty"`
+	Items       []string `json:"items,omitempty"`
+	Highlight   *string  `json:"highlight,omitempty"`
+	ImageURL    *string  `json:"imageUrl,omitempty"`
+	ImageAlt    *string  `json:"imageAlt,omitempty"`
+	CtaLabel    *string  `json:"ctaLabel,omitempty"`
+	CtaHref     *string  `json:"ctaHref,omitempty"`
+	IsFeatured  *bool    `json:"isFeatured,omitempty"`
+	Order       *int32   `json:"order,omitempty"`
 }
 
 type CreatePartnerInput struct {
@@ -108,23 +182,25 @@ type Mutation struct {
 }
 
 type OfferBlock struct {
-	ID         string   `json:"id"`
-	Section    string   `json:"section"`
-	BlockType  string   `json:"blockType"`
-	Badge      *string  `json:"badge,omitempty"`
-	Title      *string  `json:"title,omitempty"`
-	Subtitle   *string  `json:"subtitle,omitempty"`
-	Content    *string  `json:"content,omitempty"`
-	Items      []string `json:"items"`
-	Highlight  *string  `json:"highlight,omitempty"`
-	ImageURL   *string  `json:"imageUrl,omitempty"`
-	ImageAlt   *string  `json:"imageAlt,omitempty"`
-	CtaLabel   *string  `json:"ctaLabel,omitempty"`
-	CtaHref    *string  `json:"ctaHref,omitempty"`
-	IsFeatured bool     `json:"isFeatured"`
-	Order      int32    `json:"order"`
-	CreatedAt  string   `json:"createdAt"`
-	UpdatedAt  string   `json:"updatedAt"`
+	ID          string   `json:"id"`
+	PageKey     string   `json:"pageKey"`
+	CategoryKey *string  `json:"categoryKey,omitempty"`
+	Section     string   `json:"section"`
+	BlockType   string   `json:"blockType"`
+	Badge       *string  `json:"badge,omitempty"`
+	Title       *string  `json:"title,omitempty"`
+	Subtitle    *string  `json:"subtitle,omitempty"`
+	Content     *string  `json:"content,omitempty"`
+	Items       []string `json:"items"`
+	Highlight   *string  `json:"highlight,omitempty"`
+	ImageURL    *string  `json:"imageUrl,omitempty"`
+	ImageAlt    *string  `json:"imageAlt,omitempty"`
+	CtaLabel    *string  `json:"ctaLabel,omitempty"`
+	CtaHref     *string  `json:"ctaHref,omitempty"`
+	IsFeatured  bool     `json:"isFeatured"`
+	Order       int32    `json:"order"`
+	CreatedAt   string   `json:"createdAt"`
+	UpdatedAt   string   `json:"updatedAt"`
 }
 
 type Partner struct {
@@ -138,9 +214,47 @@ type Partner struct {
 type Query struct {
 }
 
+type RolePermission struct {
+	Role      Role          `json:"role"`
+	Resource  AdminResource `json:"resource"`
+	CanRead   bool          `json:"canRead"`
+	CanWrite  bool          `json:"canWrite"`
+	CanDelete bool          `json:"canDelete"`
+	UpdatedAt string        `json:"updatedAt"`
+	UpdatedBy *User         `json:"updatedBy,omitempty"`
+}
+
 type SignInInput struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
+}
+
+type Statute struct {
+	ID        string `json:"id"`
+	Content   string `json:"content"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type StatuteVersion struct {
+	ID        string  `json:"id"`
+	Content   string  `json:"content"`
+	Summary   *string `json:"summary,omitempty"`
+	AuthorID  *string `json:"authorId,omitempty"`
+	CreatedAt string  `json:"createdAt"`
+}
+
+type UpdateBoardGameInput struct {
+	Title         *string              `json:"title,omitempty"`
+	Description   *string              `json:"description,omitempty"`
+	PlayerBucket  *string              `json:"playerBucket,omitempty"`
+	PlayTime      *string              `json:"playTime,omitempty"`
+	Category      *string              `json:"category,omitempty"`
+	Difficulty    *BoardGameDifficulty `json:"difficulty,omitempty"`
+	ImageURL      *string              `json:"imageUrl,omitempty"`
+	ImageAlt      *string              `json:"imageAlt,omitempty"`
+	ClearImageURL *bool                `json:"clearImageUrl,omitempty"`
+	ClearImageAlt *bool                `json:"clearImageAlt,omitempty"`
+	Order         *int32               `json:"order,omitempty"`
 }
 
 type UpdateEventInput struct {
@@ -154,20 +268,22 @@ type UpdateEventInput struct {
 }
 
 type UpdateOfferBlockInput struct {
-	Section    *string  `json:"section,omitempty"`
-	BlockType  *string  `json:"blockType,omitempty"`
-	Badge      *string  `json:"badge,omitempty"`
-	Title      *string  `json:"title,omitempty"`
-	Subtitle   *string  `json:"subtitle,omitempty"`
-	Content    *string  `json:"content,omitempty"`
-	Items      []string `json:"items,omitempty"`
-	Highlight  *string  `json:"highlight,omitempty"`
-	ImageURL   *string  `json:"imageUrl,omitempty"`
-	ImageAlt   *string  `json:"imageAlt,omitempty"`
-	CtaLabel   *string  `json:"ctaLabel,omitempty"`
-	CtaHref    *string  `json:"ctaHref,omitempty"`
-	IsFeatured *bool    `json:"isFeatured,omitempty"`
-	Order      *int32   `json:"order,omitempty"`
+	PageKey     *string  `json:"pageKey,omitempty"`
+	CategoryKey *string  `json:"categoryKey,omitempty"`
+	Section     *string  `json:"section,omitempty"`
+	BlockType   *string  `json:"blockType,omitempty"`
+	Badge       *string  `json:"badge,omitempty"`
+	Title       *string  `json:"title,omitempty"`
+	Subtitle    *string  `json:"subtitle,omitempty"`
+	Content     *string  `json:"content,omitempty"`
+	Items       []string `json:"items,omitempty"`
+	Highlight   *string  `json:"highlight,omitempty"`
+	ImageURL    *string  `json:"imageUrl,omitempty"`
+	ImageAlt    *string  `json:"imageAlt,omitempty"`
+	CtaLabel    *string  `json:"ctaLabel,omitempty"`
+	CtaHref     *string  `json:"ctaHref,omitempty"`
+	IsFeatured  *bool    `json:"isFeatured,omitempty"`
+	Order       *int32   `json:"order,omitempty"`
 }
 
 type UpdatePartnerInput struct {
@@ -175,6 +291,14 @@ type UpdatePartnerInput struct {
 	LogoURL     *string `json:"logoUrl,omitempty"`
 	WebsiteURL  *string `json:"websiteUrl,omitempty"`
 	Description *string `json:"description,omitempty"`
+}
+
+type UpdateRolePermissionInput struct {
+	Role      Role          `json:"role"`
+	Resource  AdminResource `json:"resource"`
+	CanRead   bool          `json:"canRead"`
+	CanWrite  bool          `json:"canWrite"`
+	CanDelete bool          `json:"canDelete"`
 }
 
 type UpdateUserInput struct {
@@ -190,6 +314,274 @@ type User struct {
 	Username  *string `json:"username,omitempty"`
 	Role      Role    `json:"role"`
 	CreatedAt string  `json:"createdAt"`
+}
+
+type AdminResource string
+
+const (
+	AdminResourceAuth            AdminResource = "AUTH"
+	AdminResourceDashboard       AdminResource = "DASHBOARD"
+	AdminResourceOfferPage       AdminResource = "OFFER_PAGE"
+	AdminResourceAboutUsPage     AdminResource = "ABOUT_US_PAGE"
+	AdminResourceEvents          AdminResource = "EVENTS"
+	AdminResourcePartners        AdminResource = "PARTNERS"
+	AdminResourceCatalog         AdminResource = "CATALOG"
+	AdminResourceGallery         AdminResource = "GALLERY"
+	AdminResourceMessages        AdminResource = "MESSAGES"
+	AdminResourceUsers           AdminResource = "USERS"
+	AdminResourceRolePermissions AdminResource = "ROLE_PERMISSIONS"
+	AdminResourceAuditLogs       AdminResource = "AUDIT_LOGS"
+)
+
+var AllAdminResource = []AdminResource{
+	AdminResourceAuth,
+	AdminResourceDashboard,
+	AdminResourceOfferPage,
+	AdminResourceAboutUsPage,
+	AdminResourceEvents,
+	AdminResourcePartners,
+	AdminResourceCatalog,
+	AdminResourceGallery,
+	AdminResourceMessages,
+	AdminResourceUsers,
+	AdminResourceRolePermissions,
+	AdminResourceAuditLogs,
+}
+
+func (e AdminResource) IsValid() bool {
+	switch e {
+	case AdminResourceAuth, AdminResourceDashboard, AdminResourceOfferPage, AdminResourceAboutUsPage, AdminResourceEvents, AdminResourcePartners, AdminResourceCatalog, AdminResourceGallery, AdminResourceMessages, AdminResourceUsers, AdminResourceRolePermissions, AdminResourceAuditLogs:
+		return true
+	}
+	return false
+}
+
+func (e AdminResource) String() string {
+	return string(e)
+}
+
+func (e *AdminResource) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AdminResource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AdminResource", str)
+	}
+	return nil
+}
+
+func (e AdminResource) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AdminResource) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AdminResource) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type AuditAction string
+
+const (
+	AuditActionLogin            AuditAction = "LOGIN"
+	AuditActionCreate           AuditAction = "CREATE"
+	AuditActionUpdate           AuditAction = "UPDATE"
+	AuditActionDelete           AuditAction = "DELETE"
+	AuditActionResetPassword    AuditAction = "RESET_PASSWORD"
+	AuditActionArchive          AuditAction = "ARCHIVE"
+	AuditActionUnarchive        AuditAction = "UNARCHIVE"
+	AuditActionMarkRead         AuditAction = "MARK_READ"
+	AuditActionMarkUnread       AuditAction = "MARK_UNREAD"
+	AuditActionAddNote          AuditAction = "ADD_NOTE"
+	AuditActionRoleChange       AuditAction = "ROLE_CHANGE"
+	AuditActionPermissionChange AuditAction = "PERMISSION_CHANGE"
+)
+
+var AllAuditAction = []AuditAction{
+	AuditActionLogin,
+	AuditActionCreate,
+	AuditActionUpdate,
+	AuditActionDelete,
+	AuditActionResetPassword,
+	AuditActionArchive,
+	AuditActionUnarchive,
+	AuditActionMarkRead,
+	AuditActionMarkUnread,
+	AuditActionAddNote,
+	AuditActionRoleChange,
+	AuditActionPermissionChange,
+}
+
+func (e AuditAction) IsValid() bool {
+	switch e {
+	case AuditActionLogin, AuditActionCreate, AuditActionUpdate, AuditActionDelete, AuditActionResetPassword, AuditActionArchive, AuditActionUnarchive, AuditActionMarkRead, AuditActionMarkUnread, AuditActionAddNote, AuditActionRoleChange, AuditActionPermissionChange:
+		return true
+	}
+	return false
+}
+
+func (e AuditAction) String() string {
+	return string(e)
+}
+
+func (e *AuditAction) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuditAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AuditAction", str)
+	}
+	return nil
+}
+
+func (e AuditAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AuditAction) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AuditAction) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type BoardGameDifficulty string
+
+const (
+	BoardGameDifficultyImprezowa BoardGameDifficulty = "IMPREZOWA"
+	BoardGameDifficultyLatwa     BoardGameDifficulty = "LATWA"
+	BoardGameDifficultySredni    BoardGameDifficulty = "SREDNI"
+	BoardGameDifficultyEkspercka BoardGameDifficulty = "EKSPERCKA"
+)
+
+var AllBoardGameDifficulty = []BoardGameDifficulty{
+	BoardGameDifficultyImprezowa,
+	BoardGameDifficultyLatwa,
+	BoardGameDifficultySredni,
+	BoardGameDifficultyEkspercka,
+}
+
+func (e BoardGameDifficulty) IsValid() bool {
+	switch e {
+	case BoardGameDifficultyImprezowa, BoardGameDifficultyLatwa, BoardGameDifficultySredni, BoardGameDifficultyEkspercka:
+		return true
+	}
+	return false
+}
+
+func (e BoardGameDifficulty) String() string {
+	return string(e)
+}
+
+func (e *BoardGameDifficulty) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BoardGameDifficulty(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BoardGameDifficulty", str)
+	}
+	return nil
+}
+
+func (e BoardGameDifficulty) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BoardGameDifficulty) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BoardGameDifficulty) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type BoardGameSortMode string
+
+const (
+	BoardGameSortModeAz      BoardGameSortMode = "AZ"
+	BoardGameSortModeZa      BoardGameSortMode = "ZA"
+	BoardGameSortModePlayers BoardGameSortMode = "PLAYERS"
+	BoardGameSortModeOrder   BoardGameSortMode = "ORDER"
+)
+
+var AllBoardGameSortMode = []BoardGameSortMode{
+	BoardGameSortModeAz,
+	BoardGameSortModeZa,
+	BoardGameSortModePlayers,
+	BoardGameSortModeOrder,
+}
+
+func (e BoardGameSortMode) IsValid() bool {
+	switch e {
+	case BoardGameSortModeAz, BoardGameSortModeZa, BoardGameSortModePlayers, BoardGameSortModeOrder:
+		return true
+	}
+	return false
+}
+
+func (e BoardGameSortMode) String() string {
+	return string(e)
+}
+
+func (e *BoardGameSortMode) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BoardGameSortMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BoardGameSortMode", str)
+	}
+	return nil
+}
+
+func (e BoardGameSortMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BoardGameSortMode) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BoardGameSortMode) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type Role string

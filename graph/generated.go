@@ -36,8 +36,46 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AuditLog struct {
+		Action     func(childComplexity int) int
+		Actor      func(childComplexity int) int
+		ActorRole  func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		Details    func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Resource   func(childComplexity int) int
+		ResourceID func(childComplexity int) int
+		Summary    func(childComplexity int) int
+	}
+
 	AuthPayload struct {
 		User func(childComplexity int) int
+	}
+
+	BoardGame struct {
+		Category     func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		Description  func(childComplexity int) int
+		Difficulty   func(childComplexity int) int
+		ID           func(childComplexity int) int
+		ImageAlt     func(childComplexity int) int
+		ImageURL     func(childComplexity int) int
+		Order        func(childComplexity int) int
+		PlayTime     func(childComplexity int) int
+		PlayerBucket func(childComplexity int) int
+		Title        func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
+	}
+
+	BoardGameCatalogPage struct {
+		CatalogTotalCount      func(childComplexity int) int
+		CatalogWithImagesCount func(childComplexity int) int
+		Categories             func(childComplexity int) int
+		Difficulties           func(childComplexity int) int
+		HasMore                func(childComplexity int) int
+		Items                  func(childComplexity int) int
+		NextOffset             func(childComplexity int) int
+		TotalCount             func(childComplexity int) int
 	}
 
 	ContactSubmission struct {
@@ -80,11 +118,13 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddContactSubmissionNote    func(childComplexity int, input model.AddContactSubmissionNoteInput) int
 		ArchiveContactSubmission    func(childComplexity int, id string, archived bool) int
+		CreateBoardGame             func(childComplexity int, input model.CreateBoardGameInput) int
 		CreateContactSubmission     func(childComplexity int, input model.CreateContactSubmissionInput) int
 		CreateEvent                 func(childComplexity int, input model.CreateEventInput) int
 		CreateOfferBlock            func(childComplexity int, input model.CreateOfferBlockInput) int
 		CreatePartner               func(childComplexity int, input model.CreatePartnerInput) int
 		CreateUser                  func(childComplexity int, input model.CreateUserInput) int
+		DeleteBoardGame             func(childComplexity int, id string) int
 		DeleteEvent                 func(childComplexity int, id string) int
 		DeleteOfferBlock            func(childComplexity int, id string) int
 		DeletePartner               func(childComplexity int, id string) int
@@ -93,30 +133,34 @@ type ComplexityRoot struct {
 		MarkContactSubmissionUnread func(childComplexity int, id string) int
 		ResetUserPassword           func(childComplexity int, id string) int
 		SignIn                      func(childComplexity int, input model.SignInInput) int
+		UpdateBoardGame             func(childComplexity int, id string, input model.UpdateBoardGameInput) int
 		UpdateEvent                 func(childComplexity int, id string, input model.UpdateEventInput) int
 		UpdateOfferBlock            func(childComplexity int, id string, input model.UpdateOfferBlockInput) int
 		UpdatePartner               func(childComplexity int, id string, input model.UpdatePartnerInput) int
+		UpdateRolePermission        func(childComplexity int, input model.UpdateRolePermissionInput) int
 		UpdateUser                  func(childComplexity int, id string, input model.UpdateUserInput) int
 	}
 
 	OfferBlock struct {
-		Badge      func(childComplexity int) int
-		BlockType  func(childComplexity int) int
-		Content    func(childComplexity int) int
-		CreatedAt  func(childComplexity int) int
-		CtaHref    func(childComplexity int) int
-		CtaLabel   func(childComplexity int) int
-		Highlight  func(childComplexity int) int
-		ID         func(childComplexity int) int
-		ImageAlt   func(childComplexity int) int
-		ImageURL   func(childComplexity int) int
-		IsFeatured func(childComplexity int) int
-		Items      func(childComplexity int) int
-		Order      func(childComplexity int) int
-		Section    func(childComplexity int) int
-		Subtitle   func(childComplexity int) int
-		Title      func(childComplexity int) int
-		UpdatedAt  func(childComplexity int) int
+		Badge       func(childComplexity int) int
+		BlockType   func(childComplexity int) int
+		CategoryKey func(childComplexity int) int
+		Content     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		CtaHref     func(childComplexity int) int
+		CtaLabel    func(childComplexity int) int
+		Highlight   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ImageAlt    func(childComplexity int) int
+		ImageURL    func(childComplexity int) int
+		IsFeatured  func(childComplexity int) int
+		Items       func(childComplexity int) int
+		Order       func(childComplexity int) int
+		PageKey     func(childComplexity int) int
+		Section     func(childComplexity int) int
+		Subtitle    func(childComplexity int) int
+		Title       func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
 	}
 
 	Partner struct {
@@ -128,16 +172,48 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		AuditLogs          func(childComplexity int, input *model.AuditLogQueryInput) int
+		BoardGame          func(childComplexity int, id string) int
+		BoardGames         func(childComplexity int) int
+		BoardGamesCatalog  func(childComplexity int, input *model.BoardGameCatalogInput) int
 		ContactSubmission  func(childComplexity int, id string) int
 		ContactSubmissions func(childComplexity int, archived *bool) int
 		Event              func(childComplexity int, id string) int
 		Events             func(childComplexity int) int
 		Me                 func(childComplexity int) int
+		MyPermissions      func(childComplexity int) int
 		OfferBlock         func(childComplexity int, id string) int
-		OfferBlocks        func(childComplexity int, section *string) int
+		OfferBlocks        func(childComplexity int, pageKey *string, section *string) int
 		Partner            func(childComplexity int, id string) int
 		Partners           func(childComplexity int) int
+		RolePermissions    func(childComplexity int) int
+		Statute            func(childComplexity int) int
+		StatuteVersions    func(childComplexity int, limit *int32, offset *int32) int
 		Users              func(childComplexity int) int
+	}
+
+	RolePermission struct {
+		CanDelete func(childComplexity int) int
+		CanRead   func(childComplexity int) int
+		CanWrite  func(childComplexity int) int
+		Resource  func(childComplexity int) int
+		Role      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
+	}
+
+	Statute struct {
+		Content   func(childComplexity int) int
+		ID        func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+	}
+
+	StatuteVersion struct {
+		AuthorID  func(childComplexity int) int
+		Content   func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Summary   func(childComplexity int) int
 	}
 
 	User struct {
@@ -165,20 +241,32 @@ type MutationResolver interface {
 	CreateOfferBlock(ctx context.Context, input model.CreateOfferBlockInput) (*model.OfferBlock, error)
 	UpdateOfferBlock(ctx context.Context, id string, input model.UpdateOfferBlockInput) (*model.OfferBlock, error)
 	DeleteOfferBlock(ctx context.Context, id string) (bool, error)
+	CreateBoardGame(ctx context.Context, input model.CreateBoardGameInput) (*model.BoardGame, error)
+	UpdateBoardGame(ctx context.Context, id string, input model.UpdateBoardGameInput) (*model.BoardGame, error)
+	DeleteBoardGame(ctx context.Context, id string) (bool, error)
 	CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error)
 	UpdateUser(ctx context.Context, id string, input model.UpdateUserInput) (*model.User, error)
 	DeleteUser(ctx context.Context, id string) (bool, error)
 	ResetUserPassword(ctx context.Context, id string) (string, error)
+	UpdateRolePermission(ctx context.Context, input model.UpdateRolePermissionInput) (*model.RolePermission, error)
 }
 type QueryResolver interface {
 	Events(ctx context.Context) ([]*model.Event, error)
 	Event(ctx context.Context, id string) (*model.Event, error)
 	Partners(ctx context.Context) ([]*model.Partner, error)
 	Partner(ctx context.Context, id string) (*model.Partner, error)
-	OfferBlocks(ctx context.Context, section *string) ([]*model.OfferBlock, error)
+	OfferBlocks(ctx context.Context, pageKey *string, section *string) ([]*model.OfferBlock, error)
 	OfferBlock(ctx context.Context, id string) (*model.OfferBlock, error)
+	BoardGames(ctx context.Context) ([]*model.BoardGame, error)
+	BoardGamesCatalog(ctx context.Context, input *model.BoardGameCatalogInput) (*model.BoardGameCatalogPage, error)
+	BoardGame(ctx context.Context, id string) (*model.BoardGame, error)
 	ContactSubmissions(ctx context.Context, archived *bool) ([]*model.ContactSubmission, error)
 	ContactSubmission(ctx context.Context, id string) (*model.ContactSubmission, error)
+	MyPermissions(ctx context.Context) ([]*model.RolePermission, error)
+	RolePermissions(ctx context.Context) ([]*model.RolePermission, error)
+	Statute(ctx context.Context) (*model.Statute, error)
+	StatuteVersions(ctx context.Context, limit *int32, offset *int32) ([]*model.StatuteVersion, error)
+	AuditLogs(ctx context.Context, input *model.AuditLogQueryInput) ([]*model.AuditLog, error)
 	Users(ctx context.Context) ([]*model.User, error)
 	Me(ctx context.Context) (*model.User, error)
 }
@@ -197,12 +285,189 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
+	case "AuditLog.action":
+		if e.ComplexityRoot.AuditLog.Action == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.Action(childComplexity), true
+	case "AuditLog.actor":
+		if e.ComplexityRoot.AuditLog.Actor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.Actor(childComplexity), true
+	case "AuditLog.actorRole":
+		if e.ComplexityRoot.AuditLog.ActorRole == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.ActorRole(childComplexity), true
+	case "AuditLog.createdAt":
+		if e.ComplexityRoot.AuditLog.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.CreatedAt(childComplexity), true
+	case "AuditLog.details":
+		if e.ComplexityRoot.AuditLog.Details == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.Details(childComplexity), true
+	case "AuditLog.id":
+		if e.ComplexityRoot.AuditLog.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.ID(childComplexity), true
+	case "AuditLog.resource":
+		if e.ComplexityRoot.AuditLog.Resource == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.Resource(childComplexity), true
+	case "AuditLog.resourceId":
+		if e.ComplexityRoot.AuditLog.ResourceID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.ResourceID(childComplexity), true
+	case "AuditLog.summary":
+		if e.ComplexityRoot.AuditLog.Summary == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AuditLog.Summary(childComplexity), true
+
 	case "AuthPayload.user":
 		if e.ComplexityRoot.AuthPayload.User == nil {
 			break
 		}
 
 		return e.ComplexityRoot.AuthPayload.User(childComplexity), true
+
+	case "BoardGame.category":
+		if e.ComplexityRoot.BoardGame.Category == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.Category(childComplexity), true
+	case "BoardGame.createdAt":
+		if e.ComplexityRoot.BoardGame.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.CreatedAt(childComplexity), true
+	case "BoardGame.description":
+		if e.ComplexityRoot.BoardGame.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.Description(childComplexity), true
+	case "BoardGame.difficulty":
+		if e.ComplexityRoot.BoardGame.Difficulty == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.Difficulty(childComplexity), true
+	case "BoardGame.id":
+		if e.ComplexityRoot.BoardGame.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.ID(childComplexity), true
+	case "BoardGame.imageAlt":
+		if e.ComplexityRoot.BoardGame.ImageAlt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.ImageAlt(childComplexity), true
+	case "BoardGame.imageUrl":
+		if e.ComplexityRoot.BoardGame.ImageURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.ImageURL(childComplexity), true
+	case "BoardGame.order":
+		if e.ComplexityRoot.BoardGame.Order == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.Order(childComplexity), true
+	case "BoardGame.playTime":
+		if e.ComplexityRoot.BoardGame.PlayTime == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.PlayTime(childComplexity), true
+	case "BoardGame.playerBucket":
+		if e.ComplexityRoot.BoardGame.PlayerBucket == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.PlayerBucket(childComplexity), true
+	case "BoardGame.title":
+		if e.ComplexityRoot.BoardGame.Title == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.Title(childComplexity), true
+	case "BoardGame.updatedAt":
+		if e.ComplexityRoot.BoardGame.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGame.UpdatedAt(childComplexity), true
+
+	case "BoardGameCatalogPage.catalogTotalCount":
+		if e.ComplexityRoot.BoardGameCatalogPage.CatalogTotalCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.CatalogTotalCount(childComplexity), true
+	case "BoardGameCatalogPage.catalogWithImagesCount":
+		if e.ComplexityRoot.BoardGameCatalogPage.CatalogWithImagesCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.CatalogWithImagesCount(childComplexity), true
+	case "BoardGameCatalogPage.categories":
+		if e.ComplexityRoot.BoardGameCatalogPage.Categories == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.Categories(childComplexity), true
+	case "BoardGameCatalogPage.difficulties":
+		if e.ComplexityRoot.BoardGameCatalogPage.Difficulties == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.Difficulties(childComplexity), true
+	case "BoardGameCatalogPage.hasMore":
+		if e.ComplexityRoot.BoardGameCatalogPage.HasMore == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.HasMore(childComplexity), true
+	case "BoardGameCatalogPage.items":
+		if e.ComplexityRoot.BoardGameCatalogPage.Items == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.Items(childComplexity), true
+	case "BoardGameCatalogPage.nextOffset":
+		if e.ComplexityRoot.BoardGameCatalogPage.NextOffset == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.NextOffset(childComplexity), true
+	case "BoardGameCatalogPage.totalCount":
+		if e.ComplexityRoot.BoardGameCatalogPage.TotalCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BoardGameCatalogPage.TotalCount(childComplexity), true
 
 	case "ContactSubmission.archived":
 		if e.ComplexityRoot.ContactSubmission.Archived == nil {
@@ -397,6 +662,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.ArchiveContactSubmission(childComplexity, args["id"].(string), args["archived"].(bool)), true
+	case "Mutation.createBoardGame":
+		if e.ComplexityRoot.Mutation.CreateBoardGame == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createBoardGame_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreateBoardGame(childComplexity, args["input"].(model.CreateBoardGameInput)), true
 	case "Mutation.createContactSubmission":
 		if e.ComplexityRoot.Mutation.CreateContactSubmission == nil {
 			break
@@ -452,6 +728,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CreateUser(childComplexity, args["input"].(model.CreateUserInput)), true
+	case "Mutation.deleteBoardGame":
+		if e.ComplexityRoot.Mutation.DeleteBoardGame == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteBoardGame_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeleteBoardGame(childComplexity, args["id"].(string)), true
 	case "Mutation.deleteEvent":
 		if e.ComplexityRoot.Mutation.DeleteEvent == nil {
 			break
@@ -540,6 +827,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.SignIn(childComplexity, args["input"].(model.SignInInput)), true
+	case "Mutation.updateBoardGame":
+		if e.ComplexityRoot.Mutation.UpdateBoardGame == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateBoardGame_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdateBoardGame(childComplexity, args["id"].(string), args["input"].(model.UpdateBoardGameInput)), true
 	case "Mutation.updateEvent":
 		if e.ComplexityRoot.Mutation.UpdateEvent == nil {
 			break
@@ -573,6 +871,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.UpdatePartner(childComplexity, args["id"].(string), args["input"].(model.UpdatePartnerInput)), true
+	case "Mutation.updateRolePermission":
+		if e.ComplexityRoot.Mutation.UpdateRolePermission == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateRolePermission_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdateRolePermission(childComplexity, args["input"].(model.UpdateRolePermissionInput)), true
 	case "Mutation.updateUser":
 		if e.ComplexityRoot.Mutation.UpdateUser == nil {
 			break
@@ -597,6 +906,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.OfferBlock.BlockType(childComplexity), true
+	case "OfferBlock.categoryKey":
+		if e.ComplexityRoot.OfferBlock.CategoryKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.CategoryKey(childComplexity), true
 	case "OfferBlock.content":
 		if e.ComplexityRoot.OfferBlock.Content == nil {
 			break
@@ -663,6 +978,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.OfferBlock.Order(childComplexity), true
+	case "OfferBlock.pageKey":
+		if e.ComplexityRoot.OfferBlock.PageKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfferBlock.PageKey(childComplexity), true
 	case "OfferBlock.section":
 		if e.ComplexityRoot.OfferBlock.Section == nil {
 			break
@@ -719,6 +1040,45 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Partner.WebsiteURL(childComplexity), true
 
+	case "Query.auditLogs":
+		if e.ComplexityRoot.Query.AuditLogs == nil {
+			break
+		}
+
+		args, err := ec.field_Query_auditLogs_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.AuditLogs(childComplexity, args["input"].(*model.AuditLogQueryInput)), true
+	case "Query.boardGame":
+		if e.ComplexityRoot.Query.BoardGame == nil {
+			break
+		}
+
+		args, err := ec.field_Query_boardGame_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.BoardGame(childComplexity, args["id"].(string)), true
+	case "Query.boardGames":
+		if e.ComplexityRoot.Query.BoardGames == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.BoardGames(childComplexity), true
+	case "Query.boardGamesCatalog":
+		if e.ComplexityRoot.Query.BoardGamesCatalog == nil {
+			break
+		}
+
+		args, err := ec.field_Query_boardGamesCatalog_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.BoardGamesCatalog(childComplexity, args["input"].(*model.BoardGameCatalogInput)), true
 	case "Query.contactSubmission":
 		if e.ComplexityRoot.Query.ContactSubmission == nil {
 			break
@@ -765,6 +1125,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Me(childComplexity), true
+	case "Query.myPermissions":
+		if e.ComplexityRoot.Query.MyPermissions == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.MyPermissions(childComplexity), true
 	case "Query.offerBlock":
 		if e.ComplexityRoot.Query.OfferBlock == nil {
 			break
@@ -786,7 +1152,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Query.OfferBlocks(childComplexity, args["section"].(*string)), true
+		return e.ComplexityRoot.Query.OfferBlocks(childComplexity, args["pageKey"].(*string), args["section"].(*string)), true
 	case "Query.partner":
 		if e.ComplexityRoot.Query.Partner == nil {
 			break
@@ -804,12 +1170,128 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Partners(childComplexity), true
+	case "Query.rolePermissions":
+		if e.ComplexityRoot.Query.RolePermissions == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.RolePermissions(childComplexity), true
+	case "Query.statute":
+		if e.ComplexityRoot.Query.Statute == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.Statute(childComplexity), true
+	case "Query.statuteVersions":
+		if e.ComplexityRoot.Query.StatuteVersions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_statuteVersions_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.StatuteVersions(childComplexity, args["limit"].(*int32), args["offset"].(*int32)), true
 	case "Query.users":
 		if e.ComplexityRoot.Query.Users == nil {
 			break
 		}
 
 		return e.ComplexityRoot.Query.Users(childComplexity), true
+
+	case "RolePermission.canDelete":
+		if e.ComplexityRoot.RolePermission.CanDelete == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RolePermission.CanDelete(childComplexity), true
+	case "RolePermission.canRead":
+		if e.ComplexityRoot.RolePermission.CanRead == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RolePermission.CanRead(childComplexity), true
+	case "RolePermission.canWrite":
+		if e.ComplexityRoot.RolePermission.CanWrite == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RolePermission.CanWrite(childComplexity), true
+	case "RolePermission.resource":
+		if e.ComplexityRoot.RolePermission.Resource == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RolePermission.Resource(childComplexity), true
+	case "RolePermission.role":
+		if e.ComplexityRoot.RolePermission.Role == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RolePermission.Role(childComplexity), true
+	case "RolePermission.updatedAt":
+		if e.ComplexityRoot.RolePermission.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RolePermission.UpdatedAt(childComplexity), true
+	case "RolePermission.updatedBy":
+		if e.ComplexityRoot.RolePermission.UpdatedBy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RolePermission.UpdatedBy(childComplexity), true
+
+	case "Statute.content":
+		if e.ComplexityRoot.Statute.Content == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Statute.Content(childComplexity), true
+	case "Statute.id":
+		if e.ComplexityRoot.Statute.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Statute.ID(childComplexity), true
+	case "Statute.updatedAt":
+		if e.ComplexityRoot.Statute.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Statute.UpdatedAt(childComplexity), true
+
+	case "StatuteVersion.authorId":
+		if e.ComplexityRoot.StatuteVersion.AuthorID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StatuteVersion.AuthorID(childComplexity), true
+	case "StatuteVersion.content":
+		if e.ComplexityRoot.StatuteVersion.Content == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StatuteVersion.Content(childComplexity), true
+	case "StatuteVersion.createdAt":
+		if e.ComplexityRoot.StatuteVersion.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StatuteVersion.CreatedAt(childComplexity), true
+	case "StatuteVersion.id":
+		if e.ComplexityRoot.StatuteVersion.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StatuteVersion.ID(childComplexity), true
+	case "StatuteVersion.summary":
+		if e.ComplexityRoot.StatuteVersion.Summary == nil {
+			break
+		}
+
+		return e.ComplexityRoot.StatuteVersion.Summary(childComplexity), true
 
 	case "User.createdAt":
 		if e.ComplexityRoot.User.CreatedAt == nil {
@@ -851,15 +1333,21 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAddContactSubmissionNoteInput,
+		ec.unmarshalInputAuditLogQueryInput,
+		ec.unmarshalInputBoardGameCatalogFilterInput,
+		ec.unmarshalInputBoardGameCatalogInput,
+		ec.unmarshalInputCreateBoardGameInput,
 		ec.unmarshalInputCreateContactSubmissionInput,
 		ec.unmarshalInputCreateEventInput,
 		ec.unmarshalInputCreateOfferBlockInput,
 		ec.unmarshalInputCreatePartnerInput,
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputSignInInput,
+		ec.unmarshalInputUpdateBoardGameInput,
 		ec.unmarshalInputUpdateEventInput,
 		ec.unmarshalInputUpdateOfferBlockInput,
 		ec.unmarshalInputUpdatePartnerInput,
+		ec.unmarshalInputUpdateRolePermissionInput,
 		ec.unmarshalInputUpdateUserInput,
 	)
 	first := true
@@ -982,6 +1470,17 @@ func (ec *executionContext) field_Mutation_archiveContactSubmission_args(ctx con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createBoardGame_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateBoardGameInput2backendᚋgraphᚋmodelᚐCreateBoardGameInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createContactSubmission_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1034,6 +1533,17 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteBoardGame_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1130,6 +1640,22 @@ func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawA
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateBoardGame_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateBoardGameInput2backendᚋgraphᚋmodelᚐUpdateBoardGameInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1178,6 +1704,17 @@ func (ec *executionContext) field_Mutation_updatePartner_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateRolePermission_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateRolePermissionInput2backendᚋgraphᚋmodelᚐUpdateRolePermissionInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1202,6 +1739,39 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_auditLogs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOAuditLogQueryInput2ᚖbackendᚋgraphᚋmodelᚐAuditLogQueryInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_boardGame_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_boardGamesCatalog_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOBoardGameCatalogInput2ᚖbackendᚋgraphᚋmodelᚐBoardGameCatalogInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1252,11 +1822,16 @@ func (ec *executionContext) field_Query_offerBlock_args(ctx context.Context, raw
 func (ec *executionContext) field_Query_offerBlocks_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "section", ec.unmarshalOString2ᚖstring)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "pageKey", ec.unmarshalOString2ᚖstring)
 	if err != nil {
 		return nil, err
 	}
-	args["section"] = arg0
+	args["pageKey"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "section", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["section"] = arg1
 	return args, nil
 }
 
@@ -1268,6 +1843,22 @@ func (ec *executionContext) field_Query_partner_args(ctx context.Context, rawArg
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_statuteVersions_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint32)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "offset", ec.unmarshalOInt2ᚖint32)
+	if err != nil {
+		return nil, err
+	}
+	args["offset"] = arg1
 	return args, nil
 }
 
@@ -1323,6 +1914,279 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _AuditLog_id(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_actor(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_actor,
+		func(ctx context.Context) (any, error) {
+			return obj.Actor, nil
+		},
+		nil,
+		ec.marshalOUser2ᚖbackendᚋgraphᚋmodelᚐUser,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_actor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_actorRole(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_actorRole,
+		func(ctx context.Context) (any, error) {
+			return obj.ActorRole, nil
+		},
+		nil,
+		ec.marshalORole2ᚖbackendᚋgraphᚋmodelᚐRole,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_actorRole(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Role does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_resource(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_resource,
+		func(ctx context.Context) (any, error) {
+			return obj.Resource, nil
+		},
+		nil,
+		ec.marshalNAdminResource2backendᚋgraphᚋmodelᚐAdminResource,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_resource(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AdminResource does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_action(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_action,
+		func(ctx context.Context) (any, error) {
+			return obj.Action, nil
+		},
+		nil,
+		ec.marshalNAuditAction2backendᚋgraphᚋmodelᚐAuditAction,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_action(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AuditAction does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_resourceId(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_resourceId,
+		func(ctx context.Context) (any, error) {
+			return obj.ResourceID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_resourceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_summary(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_summary,
+		func(ctx context.Context) (any, error) {
+			return obj.Summary, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_summary(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_details(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_details,
+		func(ctx context.Context) (any, error) {
+			return obj.Details, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_details(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditLog_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.AuditLog) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuditLog_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuditLog_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AuthPayload_user(ctx context.Context, field graphql.CollectedField, obj *model.AuthPayload) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1359,6 +2223,612 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 				return ec.fieldContext_User_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_id(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_title(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_title,
+		func(ctx context.Context) (any, error) {
+			return obj.Title, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_description(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_description,
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_playerBucket(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_playerBucket,
+		func(ctx context.Context) (any, error) {
+			return obj.PlayerBucket, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_playerBucket(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_playTime(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_playTime,
+		func(ctx context.Context) (any, error) {
+			return obj.PlayTime, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_playTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_category(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_category,
+		func(ctx context.Context) (any, error) {
+			return obj.Category, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_difficulty(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_difficulty,
+		func(ctx context.Context) (any, error) {
+			return obj.Difficulty, nil
+		},
+		nil,
+		ec.marshalOBoardGameDifficulty2ᚖbackendᚋgraphᚋmodelᚐBoardGameDifficulty,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_difficulty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BoardGameDifficulty does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_imageUrl(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_imageUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.ImageURL, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_imageUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_imageAlt(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_imageAlt,
+		func(ctx context.Context) (any, error) {
+			return obj.ImageAlt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_imageAlt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_order(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_order,
+		func(ctx context.Context) (any, error) {
+			return obj.Order, nil
+		},
+		nil,
+		ec.marshalNInt2int32,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_order(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGame_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.BoardGame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGame_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGame_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGame",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_items(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_items,
+		func(ctx context.Context) (any, error) {
+			return obj.Items, nil
+		},
+		nil,
+		ec.marshalNBoardGame2ᚕᚖbackendᚋgraphᚋmodelᚐBoardGameᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BoardGame_id(ctx, field)
+			case "title":
+				return ec.fieldContext_BoardGame_title(ctx, field)
+			case "description":
+				return ec.fieldContext_BoardGame_description(ctx, field)
+			case "playerBucket":
+				return ec.fieldContext_BoardGame_playerBucket(ctx, field)
+			case "playTime":
+				return ec.fieldContext_BoardGame_playTime(ctx, field)
+			case "category":
+				return ec.fieldContext_BoardGame_category(ctx, field)
+			case "difficulty":
+				return ec.fieldContext_BoardGame_difficulty(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_BoardGame_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_BoardGame_imageAlt(ctx, field)
+			case "order":
+				return ec.fieldContext_BoardGame_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BoardGame_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_BoardGame_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BoardGame", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_totalCount,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalCount, nil
+		},
+		nil,
+		ec.marshalNInt2int32,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_hasMore(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_hasMore,
+		func(ctx context.Context) (any, error) {
+			return obj.HasMore, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_hasMore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_nextOffset(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_nextOffset,
+		func(ctx context.Context) (any, error) {
+			return obj.NextOffset, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint32,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_nextOffset(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_categories(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_categories,
+		func(ctx context.Context) (any, error) {
+			return obj.Categories, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_categories(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_difficulties(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_difficulties,
+		func(ctx context.Context) (any, error) {
+			return obj.Difficulties, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_difficulties(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_catalogTotalCount(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_catalogTotalCount,
+		func(ctx context.Context) (any, error) {
+			return obj.CatalogTotalCount, nil
+		},
+		nil,
+		ec.marshalNInt2int32,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_catalogTotalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BoardGameCatalogPage_catalogWithImagesCount(ctx context.Context, field graphql.CollectedField, obj *model.BoardGameCatalogPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BoardGameCatalogPage_catalogWithImagesCount,
+		func(ctx context.Context) (any, error) {
+			return obj.CatalogWithImagesCount, nil
+		},
+		nil,
+		ec.marshalNInt2int32,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BoardGameCatalogPage_catalogWithImagesCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BoardGameCatalogPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2927,6 +4397,10 @@ func (ec *executionContext) fieldContext_Mutation_createOfferBlock(ctx context.C
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "pageKey":
+				return ec.fieldContext_OfferBlock_pageKey(ctx, field)
+			case "categoryKey":
+				return ec.fieldContext_OfferBlock_categoryKey(ctx, field)
 			case "section":
 				return ec.fieldContext_OfferBlock_section(ctx, field)
 			case "blockType":
@@ -3004,6 +4478,10 @@ func (ec *executionContext) fieldContext_Mutation_updateOfferBlock(ctx context.C
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "pageKey":
+				return ec.fieldContext_OfferBlock_pageKey(ctx, field)
+			case "categoryKey":
+				return ec.fieldContext_OfferBlock_categoryKey(ctx, field)
 			case "section":
 				return ec.fieldContext_OfferBlock_section(ctx, field)
 			case "blockType":
@@ -3089,6 +4567,181 @@ func (ec *executionContext) fieldContext_Mutation_deleteOfferBlock(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteOfferBlock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createBoardGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createBoardGame,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreateBoardGame(ctx, fc.Args["input"].(model.CreateBoardGameInput))
+		},
+		nil,
+		ec.marshalNBoardGame2ᚖbackendᚋgraphᚋmodelᚐBoardGame,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createBoardGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BoardGame_id(ctx, field)
+			case "title":
+				return ec.fieldContext_BoardGame_title(ctx, field)
+			case "description":
+				return ec.fieldContext_BoardGame_description(ctx, field)
+			case "playerBucket":
+				return ec.fieldContext_BoardGame_playerBucket(ctx, field)
+			case "playTime":
+				return ec.fieldContext_BoardGame_playTime(ctx, field)
+			case "category":
+				return ec.fieldContext_BoardGame_category(ctx, field)
+			case "difficulty":
+				return ec.fieldContext_BoardGame_difficulty(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_BoardGame_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_BoardGame_imageAlt(ctx, field)
+			case "order":
+				return ec.fieldContext_BoardGame_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BoardGame_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_BoardGame_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BoardGame", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createBoardGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateBoardGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateBoardGame,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdateBoardGame(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdateBoardGameInput))
+		},
+		nil,
+		ec.marshalNBoardGame2ᚖbackendᚋgraphᚋmodelᚐBoardGame,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateBoardGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BoardGame_id(ctx, field)
+			case "title":
+				return ec.fieldContext_BoardGame_title(ctx, field)
+			case "description":
+				return ec.fieldContext_BoardGame_description(ctx, field)
+			case "playerBucket":
+				return ec.fieldContext_BoardGame_playerBucket(ctx, field)
+			case "playTime":
+				return ec.fieldContext_BoardGame_playTime(ctx, field)
+			case "category":
+				return ec.fieldContext_BoardGame_category(ctx, field)
+			case "difficulty":
+				return ec.fieldContext_BoardGame_difficulty(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_BoardGame_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_BoardGame_imageAlt(ctx, field)
+			case "order":
+				return ec.fieldContext_BoardGame_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BoardGame_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_BoardGame_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BoardGame", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateBoardGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteBoardGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteBoardGame,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeleteBoardGame(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteBoardGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteBoardGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3283,6 +4936,63 @@ func (ec *executionContext) fieldContext_Mutation_resetUserPassword(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateRolePermission(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateRolePermission,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdateRolePermission(ctx, fc.Args["input"].(model.UpdateRolePermissionInput))
+		},
+		nil,
+		ec.marshalNRolePermission2ᚖbackendᚋgraphᚋmodelᚐRolePermission,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateRolePermission(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "role":
+				return ec.fieldContext_RolePermission_role(ctx, field)
+			case "resource":
+				return ec.fieldContext_RolePermission_resource(ctx, field)
+			case "canRead":
+				return ec.fieldContext_RolePermission_canRead(ctx, field)
+			case "canWrite":
+				return ec.fieldContext_RolePermission_canWrite(ctx, field)
+			case "canDelete":
+				return ec.fieldContext_RolePermission_canDelete(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RolePermission_updatedAt(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_RolePermission_updatedBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RolePermission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateRolePermission_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OfferBlock_id(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3307,6 +5017,64 @@ func (ec *executionContext) fieldContext_OfferBlock_id(_ context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_pageKey(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_pageKey,
+		func(ctx context.Context) (any, error) {
+			return obj.PageKey, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_pageKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfferBlock_categoryKey(ctx context.Context, field graphql.CollectedField, obj *model.OfferBlock) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfferBlock_categoryKey,
+		func(ctx context.Context) (any, error) {
+			return obj.CategoryKey, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfferBlock_categoryKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfferBlock",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4133,7 +5901,7 @@ func (ec *executionContext) _Query_offerBlocks(ctx context.Context, field graphq
 		ec.fieldContext_Query_offerBlocks,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Query().OfferBlocks(ctx, fc.Args["section"].(*string))
+			return ec.Resolvers.Query().OfferBlocks(ctx, fc.Args["pageKey"].(*string), fc.Args["section"].(*string))
 		},
 		nil,
 		ec.marshalNOfferBlock2ᚕᚖbackendᚋgraphᚋmodelᚐOfferBlockᚄ,
@@ -4152,6 +5920,10 @@ func (ec *executionContext) fieldContext_Query_offerBlocks(ctx context.Context, 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "pageKey":
+				return ec.fieldContext_OfferBlock_pageKey(ctx, field)
+			case "categoryKey":
+				return ec.fieldContext_OfferBlock_categoryKey(ctx, field)
 			case "section":
 				return ec.fieldContext_OfferBlock_section(ctx, field)
 			case "blockType":
@@ -4229,6 +6001,10 @@ func (ec *executionContext) fieldContext_Query_offerBlock(ctx context.Context, f
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_OfferBlock_id(ctx, field)
+			case "pageKey":
+				return ec.fieldContext_OfferBlock_pageKey(ctx, field)
+			case "categoryKey":
+				return ec.fieldContext_OfferBlock_categoryKey(ctx, field)
 			case "section":
 				return ec.fieldContext_OfferBlock_section(ctx, field)
 			case "blockType":
@@ -4273,6 +6049,187 @@ func (ec *executionContext) fieldContext_Query_offerBlock(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_offerBlock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_boardGames(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_boardGames,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().BoardGames(ctx)
+		},
+		nil,
+		ec.marshalNBoardGame2ᚕᚖbackendᚋgraphᚋmodelᚐBoardGameᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_boardGames(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BoardGame_id(ctx, field)
+			case "title":
+				return ec.fieldContext_BoardGame_title(ctx, field)
+			case "description":
+				return ec.fieldContext_BoardGame_description(ctx, field)
+			case "playerBucket":
+				return ec.fieldContext_BoardGame_playerBucket(ctx, field)
+			case "playTime":
+				return ec.fieldContext_BoardGame_playTime(ctx, field)
+			case "category":
+				return ec.fieldContext_BoardGame_category(ctx, field)
+			case "difficulty":
+				return ec.fieldContext_BoardGame_difficulty(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_BoardGame_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_BoardGame_imageAlt(ctx, field)
+			case "order":
+				return ec.fieldContext_BoardGame_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BoardGame_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_BoardGame_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BoardGame", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_boardGamesCatalog(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_boardGamesCatalog,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().BoardGamesCatalog(ctx, fc.Args["input"].(*model.BoardGameCatalogInput))
+		},
+		nil,
+		ec.marshalNBoardGameCatalogPage2ᚖbackendᚋgraphᚋmodelᚐBoardGameCatalogPage,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_boardGamesCatalog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_BoardGameCatalogPage_items(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_BoardGameCatalogPage_totalCount(ctx, field)
+			case "hasMore":
+				return ec.fieldContext_BoardGameCatalogPage_hasMore(ctx, field)
+			case "nextOffset":
+				return ec.fieldContext_BoardGameCatalogPage_nextOffset(ctx, field)
+			case "categories":
+				return ec.fieldContext_BoardGameCatalogPage_categories(ctx, field)
+			case "difficulties":
+				return ec.fieldContext_BoardGameCatalogPage_difficulties(ctx, field)
+			case "catalogTotalCount":
+				return ec.fieldContext_BoardGameCatalogPage_catalogTotalCount(ctx, field)
+			case "catalogWithImagesCount":
+				return ec.fieldContext_BoardGameCatalogPage_catalogWithImagesCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BoardGameCatalogPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_boardGamesCatalog_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_boardGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_boardGame,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().BoardGame(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalOBoardGame2ᚖbackendᚋgraphᚋmodelᚐBoardGame,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_boardGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BoardGame_id(ctx, field)
+			case "title":
+				return ec.fieldContext_BoardGame_title(ctx, field)
+			case "description":
+				return ec.fieldContext_BoardGame_description(ctx, field)
+			case "playerBucket":
+				return ec.fieldContext_BoardGame_playerBucket(ctx, field)
+			case "playTime":
+				return ec.fieldContext_BoardGame_playTime(ctx, field)
+			case "category":
+				return ec.fieldContext_BoardGame_category(ctx, field)
+			case "difficulty":
+				return ec.fieldContext_BoardGame_difficulty(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_BoardGame_imageUrl(ctx, field)
+			case "imageAlt":
+				return ec.fieldContext_BoardGame_imageAlt(ctx, field)
+			case "order":
+				return ec.fieldContext_BoardGame_order(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BoardGame_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_BoardGame_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BoardGame", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_boardGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4411,6 +6368,247 @@ func (ec *executionContext) fieldContext_Query_contactSubmission(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_contactSubmission_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_myPermissions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myPermissions,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().MyPermissions(ctx)
+		},
+		nil,
+		ec.marshalNRolePermission2ᚕᚖbackendᚋgraphᚋmodelᚐRolePermissionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myPermissions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "role":
+				return ec.fieldContext_RolePermission_role(ctx, field)
+			case "resource":
+				return ec.fieldContext_RolePermission_resource(ctx, field)
+			case "canRead":
+				return ec.fieldContext_RolePermission_canRead(ctx, field)
+			case "canWrite":
+				return ec.fieldContext_RolePermission_canWrite(ctx, field)
+			case "canDelete":
+				return ec.fieldContext_RolePermission_canDelete(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RolePermission_updatedAt(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_RolePermission_updatedBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RolePermission", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_rolePermissions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_rolePermissions,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().RolePermissions(ctx)
+		},
+		nil,
+		ec.marshalNRolePermission2ᚕᚖbackendᚋgraphᚋmodelᚐRolePermissionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_rolePermissions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "role":
+				return ec.fieldContext_RolePermission_role(ctx, field)
+			case "resource":
+				return ec.fieldContext_RolePermission_resource(ctx, field)
+			case "canRead":
+				return ec.fieldContext_RolePermission_canRead(ctx, field)
+			case "canWrite":
+				return ec.fieldContext_RolePermission_canWrite(ctx, field)
+			case "canDelete":
+				return ec.fieldContext_RolePermission_canDelete(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RolePermission_updatedAt(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_RolePermission_updatedBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RolePermission", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_statute(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_statute,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().Statute(ctx)
+		},
+		nil,
+		ec.marshalOStatute2ᚖbackendᚋgraphᚋmodelᚐStatute,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_statute(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Statute_id(ctx, field)
+			case "content":
+				return ec.fieldContext_Statute_content(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Statute_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Statute", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_statuteVersions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_statuteVersions,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().StatuteVersions(ctx, fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
+		},
+		nil,
+		ec.marshalNStatuteVersion2ᚕᚖbackendᚋgraphᚋmodelᚐStatuteVersionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_statuteVersions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StatuteVersion_id(ctx, field)
+			case "content":
+				return ec.fieldContext_StatuteVersion_content(ctx, field)
+			case "summary":
+				return ec.fieldContext_StatuteVersion_summary(ctx, field)
+			case "authorId":
+				return ec.fieldContext_StatuteVersion_authorId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_StatuteVersion_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatuteVersion", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_statuteVersions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_auditLogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_auditLogs,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().AuditLogs(ctx, fc.Args["input"].(*model.AuditLogQueryInput))
+		},
+		nil,
+		ec.marshalNAuditLog2ᚕᚖbackendᚋgraphᚋmodelᚐAuditLogᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_auditLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AuditLog_id(ctx, field)
+			case "actor":
+				return ec.fieldContext_AuditLog_actor(ctx, field)
+			case "actorRole":
+				return ec.fieldContext_AuditLog_actorRole(ctx, field)
+			case "resource":
+				return ec.fieldContext_AuditLog_resource(ctx, field)
+			case "action":
+				return ec.fieldContext_AuditLog_action(ctx, field)
+			case "resourceId":
+				return ec.fieldContext_AuditLog_resourceId(ctx, field)
+			case "summary":
+				return ec.fieldContext_AuditLog_summary(ctx, field)
+			case "details":
+				return ec.fieldContext_AuditLog_details(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AuditLog_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuditLog", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_auditLogs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4602,6 +6800,453 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RolePermission_role(ctx context.Context, field graphql.CollectedField, obj *model.RolePermission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RolePermission_role,
+		func(ctx context.Context) (any, error) {
+			return obj.Role, nil
+		},
+		nil,
+		ec.marshalNRole2backendᚋgraphᚋmodelᚐRole,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RolePermission_role(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RolePermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Role does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RolePermission_resource(ctx context.Context, field graphql.CollectedField, obj *model.RolePermission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RolePermission_resource,
+		func(ctx context.Context) (any, error) {
+			return obj.Resource, nil
+		},
+		nil,
+		ec.marshalNAdminResource2backendᚋgraphᚋmodelᚐAdminResource,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RolePermission_resource(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RolePermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AdminResource does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RolePermission_canRead(ctx context.Context, field graphql.CollectedField, obj *model.RolePermission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RolePermission_canRead,
+		func(ctx context.Context) (any, error) {
+			return obj.CanRead, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RolePermission_canRead(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RolePermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RolePermission_canWrite(ctx context.Context, field graphql.CollectedField, obj *model.RolePermission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RolePermission_canWrite,
+		func(ctx context.Context) (any, error) {
+			return obj.CanWrite, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RolePermission_canWrite(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RolePermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RolePermission_canDelete(ctx context.Context, field graphql.CollectedField, obj *model.RolePermission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RolePermission_canDelete,
+		func(ctx context.Context) (any, error) {
+			return obj.CanDelete, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RolePermission_canDelete(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RolePermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RolePermission_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.RolePermission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RolePermission_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RolePermission_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RolePermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RolePermission_updatedBy(ctx context.Context, field graphql.CollectedField, obj *model.RolePermission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RolePermission_updatedBy,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedBy, nil
+		},
+		nil,
+		ec.marshalOUser2ᚖbackendᚋgraphᚋmodelᚐUser,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RolePermission_updatedBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RolePermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Statute_id(ctx context.Context, field graphql.CollectedField, obj *model.Statute) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Statute_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Statute_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Statute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Statute_content(ctx context.Context, field graphql.CollectedField, obj *model.Statute) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Statute_content,
+		func(ctx context.Context) (any, error) {
+			return obj.Content, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Statute_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Statute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Statute_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.Statute) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Statute_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Statute_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Statute",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatuteVersion_id(ctx context.Context, field graphql.CollectedField, obj *model.StatuteVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StatuteVersion_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StatuteVersion_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatuteVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatuteVersion_content(ctx context.Context, field graphql.CollectedField, obj *model.StatuteVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StatuteVersion_content,
+		func(ctx context.Context) (any, error) {
+			return obj.Content, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StatuteVersion_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatuteVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatuteVersion_summary(ctx context.Context, field graphql.CollectedField, obj *model.StatuteVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StatuteVersion_summary,
+		func(ctx context.Context) (any, error) {
+			return obj.Summary, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StatuteVersion_summary(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatuteVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatuteVersion_authorId(ctx context.Context, field graphql.CollectedField, obj *model.StatuteVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StatuteVersion_authorId,
+		func(ctx context.Context) (any, error) {
+			return obj.AuthorID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_StatuteVersion_authorId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatuteVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatuteVersion_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.StatuteVersion) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StatuteVersion_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StatuteVersion_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatuteVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6242,6 +8887,260 @@ func (ec *executionContext) unmarshalInputAddContactSubmissionNoteInput(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAuditLogQueryInput(ctx context.Context, obj any) (model.AuditLogQueryInput, error) {
+	var it model.AuditLogQueryInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["limit"]; !present {
+		asMap["limit"] = 100
+	}
+
+	fieldsInOrder := [...]string{"limit", "actorId", "resource", "action"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "actorId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actorId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActorID = data
+		case "resource":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resource"))
+			data, err := ec.unmarshalOAdminResource2ᚖbackendᚋgraphᚋmodelᚐAdminResource(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Resource = data
+		case "action":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("action"))
+			data, err := ec.unmarshalOAuditAction2ᚖbackendᚋgraphᚋmodelᚐAuditAction(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Action = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBoardGameCatalogFilterInput(ctx context.Context, obj any) (model.BoardGameCatalogFilterInput, error) {
+	var it model.BoardGameCatalogFilterInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"search", "playerBucket", "category", "difficulty", "difficulties"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Search = data
+		case "playerBucket":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("playerBucket"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlayerBucket = data
+		case "category":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Category = data
+		case "difficulty":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("difficulty"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Difficulty = data
+		case "difficulties":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("difficulties"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Difficulties = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBoardGameCatalogInput(ctx context.Context, obj any) (model.BoardGameCatalogInput, error) {
+	var it model.BoardGameCatalogInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"filter", "sort", "limit", "offset"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "filter":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+			data, err := ec.unmarshalOBoardGameCatalogFilterInput2ᚖbackendᚋgraphᚋmodelᚐBoardGameCatalogFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Filter = data
+		case "sort":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+			data, err := ec.unmarshalOBoardGameSortMode2ᚖbackendᚋgraphᚋmodelᚐBoardGameSortMode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sort = data
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "offset":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Offset = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateBoardGameInput(ctx context.Context, obj any) (model.CreateBoardGameInput, error) {
+	var it model.CreateBoardGameInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["order"]; !present {
+		asMap["order"] = 0
+	}
+
+	fieldsInOrder := [...]string{"title", "description", "playerBucket", "playTime", "category", "difficulty", "imageUrl", "imageAlt", "order"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "title":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Title = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "playerBucket":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("playerBucket"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlayerBucket = data
+		case "playTime":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("playTime"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlayTime = data
+		case "category":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Category = data
+		case "difficulty":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("difficulty"))
+			data, err := ec.unmarshalOBoardGameDifficulty2ᚖbackendᚋgraphᚋmodelᚐBoardGameDifficulty(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Difficulty = data
+		case "imageUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageURL = data
+		case "imageAlt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageAlt"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageAlt = data
+		case "order":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Order = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateContactSubmissionInput(ctx context.Context, obj any) (model.CreateContactSubmissionInput, error) {
 	var it model.CreateContactSubmissionInput
 	if obj == nil {
@@ -6386,13 +9285,27 @@ func (ec *executionContext) unmarshalInputCreateOfferBlockInput(ctx context.Cont
 		asMap["order"] = 0
 	}
 
-	fieldsInOrder := [...]string{"section", "blockType", "badge", "title", "subtitle", "content", "items", "highlight", "imageUrl", "imageAlt", "ctaLabel", "ctaHref", "isFeatured", "order"}
+	fieldsInOrder := [...]string{"pageKey", "categoryKey", "section", "blockType", "badge", "title", "subtitle", "content", "items", "highlight", "imageUrl", "imageAlt", "ctaLabel", "ctaHref", "isFeatured", "order"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "pageKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageKey"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PageKey = data
+		case "categoryKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryKey = data
 		case "section":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("section"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -6609,20 +9522,20 @@ func (ec *executionContext) unmarshalInputSignInInput(ctx context.Context, obj a
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"email", "password"}
+	fieldsInOrder := [...]string{"identifier", "password"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "email":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		case "identifier":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Email = data
+			it.Identifier = data
 		case "password":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -6630,6 +9543,106 @@ func (ec *executionContext) unmarshalInputSignInInput(ctx context.Context, obj a
 				return it, err
 			}
 			it.Password = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateBoardGameInput(ctx context.Context, obj any) (model.UpdateBoardGameInput, error) {
+	var it model.UpdateBoardGameInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"title", "description", "playerBucket", "playTime", "category", "difficulty", "imageUrl", "imageAlt", "clearImageUrl", "clearImageAlt", "order"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "title":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Title = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "playerBucket":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("playerBucket"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlayerBucket = data
+		case "playTime":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("playTime"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlayTime = data
+		case "category":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Category = data
+		case "difficulty":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("difficulty"))
+			data, err := ec.unmarshalOBoardGameDifficulty2ᚖbackendᚋgraphᚋmodelᚐBoardGameDifficulty(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Difficulty = data
+		case "imageUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageURL = data
+		case "imageAlt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageAlt"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageAlt = data
+		case "clearImageUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearImageUrl"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearImageURL = data
+		case "clearImageAlt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearImageAlt"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearImageAlt = data
+		case "order":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Order = data
 		}
 	}
 	return it, nil
@@ -6718,13 +9731,27 @@ func (ec *executionContext) unmarshalInputUpdateOfferBlockInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"section", "blockType", "badge", "title", "subtitle", "content", "items", "highlight", "imageUrl", "imageAlt", "ctaLabel", "ctaHref", "isFeatured", "order"}
+	fieldsInOrder := [...]string{"pageKey", "categoryKey", "section", "blockType", "badge", "title", "subtitle", "content", "items", "highlight", "imageUrl", "imageAlt", "ctaLabel", "ctaHref", "isFeatured", "order"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "pageKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PageKey = data
+		case "categoryKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryKey = data
 		case "section":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("section"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -6879,6 +9906,64 @@ func (ec *executionContext) unmarshalInputUpdatePartnerInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateRolePermissionInput(ctx context.Context, obj any) (model.UpdateRolePermissionInput, error) {
+	var it model.UpdateRolePermissionInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"role", "resource", "canRead", "canWrite", "canDelete"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "role":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			data, err := ec.unmarshalNRole2backendᚋgraphᚋmodelᚐRole(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Role = data
+		case "resource":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resource"))
+			data, err := ec.unmarshalNAdminResource2backendᚋgraphᚋmodelᚐAdminResource(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Resource = data
+		case "canRead":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("canRead"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CanRead = data
+		case "canWrite":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("canWrite"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CanWrite = data
+		case "canDelete":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("canDelete"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CanDelete = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj any) (model.UpdateUserInput, error) {
 	var it model.UpdateUserInput
 	if obj == nil {
@@ -6938,6 +10023,73 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 
 // region    **************************** object.gotpl ****************************
 
+var auditLogImplementors = []string{"AuditLog"}
+
+func (ec *executionContext) _AuditLog(ctx context.Context, sel ast.SelectionSet, obj *model.AuditLog) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, auditLogImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuditLog")
+		case "id":
+			out.Values[i] = ec._AuditLog_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "actor":
+			out.Values[i] = ec._AuditLog_actor(ctx, field, obj)
+		case "actorRole":
+			out.Values[i] = ec._AuditLog_actorRole(ctx, field, obj)
+		case "resource":
+			out.Values[i] = ec._AuditLog_resource(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "action":
+			out.Values[i] = ec._AuditLog_action(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "resourceId":
+			out.Values[i] = ec._AuditLog_resourceId(ctx, field, obj)
+		case "summary":
+			out.Values[i] = ec._AuditLog_summary(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "details":
+			out.Values[i] = ec._AuditLog_details(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._AuditLog_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var authPayloadImplementors = []string{"AuthPayload"}
 
 func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionSet, obj *model.AuthPayload) graphql.Marshaler {
@@ -6951,6 +10103,156 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = graphql.MarshalString("AuthPayload")
 		case "user":
 			out.Values[i] = ec._AuthPayload_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var boardGameImplementors = []string{"BoardGame"}
+
+func (ec *executionContext) _BoardGame(ctx context.Context, sel ast.SelectionSet, obj *model.BoardGame) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, boardGameImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BoardGame")
+		case "id":
+			out.Values[i] = ec._BoardGame_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "title":
+			out.Values[i] = ec._BoardGame_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._BoardGame_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "playerBucket":
+			out.Values[i] = ec._BoardGame_playerBucket(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "playTime":
+			out.Values[i] = ec._BoardGame_playTime(ctx, field, obj)
+		case "category":
+			out.Values[i] = ec._BoardGame_category(ctx, field, obj)
+		case "difficulty":
+			out.Values[i] = ec._BoardGame_difficulty(ctx, field, obj)
+		case "imageUrl":
+			out.Values[i] = ec._BoardGame_imageUrl(ctx, field, obj)
+		case "imageAlt":
+			out.Values[i] = ec._BoardGame_imageAlt(ctx, field, obj)
+		case "order":
+			out.Values[i] = ec._BoardGame_order(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._BoardGame_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._BoardGame_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var boardGameCatalogPageImplementors = []string{"BoardGameCatalogPage"}
+
+func (ec *executionContext) _BoardGameCatalogPage(ctx context.Context, sel ast.SelectionSet, obj *model.BoardGameCatalogPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, boardGameCatalogPageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BoardGameCatalogPage")
+		case "items":
+			out.Values[i] = ec._BoardGameCatalogPage_items(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._BoardGameCatalogPage_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "hasMore":
+			out.Values[i] = ec._BoardGameCatalogPage_hasMore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nextOffset":
+			out.Values[i] = ec._BoardGameCatalogPage_nextOffset(ctx, field, obj)
+		case "categories":
+			out.Values[i] = ec._BoardGameCatalogPage_categories(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "difficulties":
+			out.Values[i] = ec._BoardGameCatalogPage_difficulties(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "catalogTotalCount":
+			out.Values[i] = ec._BoardGameCatalogPage_catalogTotalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "catalogWithImagesCount":
+			out.Values[i] = ec._BoardGameCatalogPage_catalogWithImagesCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -7316,6 +10618,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createBoardGame":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createBoardGame(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateBoardGame":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateBoardGame(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteBoardGame":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteBoardGame(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUser(ctx, field)
@@ -7340,6 +10663,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "resetUserPassword":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_resetUserPassword(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateRolePermission":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateRolePermission(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7383,6 +10713,13 @@ func (ec *executionContext) _OfferBlock(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "pageKey":
+			out.Values[i] = ec._OfferBlock_pageKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "categoryKey":
+			out.Values[i] = ec._OfferBlock_categoryKey(ctx, field, obj)
 		case "section":
 			out.Values[i] = ec._OfferBlock_section(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7651,6 +10988,69 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "boardGames":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_boardGames(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "boardGamesCatalog":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_boardGamesCatalog(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "boardGame":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_boardGame(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "contactSubmissions":
 			field := field
 
@@ -7683,6 +11083,113 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_contactSubmission(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myPermissions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myPermissions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "rolePermissions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_rolePermissions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "statute":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_statute(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "statuteVersions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_statuteVersions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "auditLogs":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_auditLogs(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -7741,6 +11248,174 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var rolePermissionImplementors = []string{"RolePermission"}
+
+func (ec *executionContext) _RolePermission(ctx context.Context, sel ast.SelectionSet, obj *model.RolePermission) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rolePermissionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RolePermission")
+		case "role":
+			out.Values[i] = ec._RolePermission_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "resource":
+			out.Values[i] = ec._RolePermission_resource(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "canRead":
+			out.Values[i] = ec._RolePermission_canRead(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "canWrite":
+			out.Values[i] = ec._RolePermission_canWrite(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "canDelete":
+			out.Values[i] = ec._RolePermission_canDelete(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._RolePermission_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedBy":
+			out.Values[i] = ec._RolePermission_updatedBy(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var statuteImplementors = []string{"Statute"}
+
+func (ec *executionContext) _Statute(ctx context.Context, sel ast.SelectionSet, obj *model.Statute) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statuteImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Statute")
+		case "id":
+			out.Values[i] = ec._Statute_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "content":
+			out.Values[i] = ec._Statute_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._Statute_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var statuteVersionImplementors = []string{"StatuteVersion"}
+
+func (ec *executionContext) _StatuteVersion(ctx context.Context, sel ast.SelectionSet, obj *model.StatuteVersion) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statuteVersionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StatuteVersion")
+		case "id":
+			out.Values[i] = ec._StatuteVersion_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "content":
+			out.Values[i] = ec._StatuteVersion_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "summary":
+			out.Values[i] = ec._StatuteVersion_summary(ctx, field, obj)
+		case "authorId":
+			out.Values[i] = ec._StatuteVersion_authorId(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._StatuteVersion_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8157,6 +11832,52 @@ func (ec *executionContext) unmarshalNAddContactSubmissionNoteInput2backendᚋgr
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNAdminResource2backendᚋgraphᚋmodelᚐAdminResource(ctx context.Context, v any) (model.AdminResource, error) {
+	var res model.AdminResource
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAdminResource2backendᚋgraphᚋmodelᚐAdminResource(ctx context.Context, sel ast.SelectionSet, v model.AdminResource) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNAuditAction2backendᚋgraphᚋmodelᚐAuditAction(ctx context.Context, v any) (model.AuditAction, error) {
+	var res model.AuditAction
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAuditAction2backendᚋgraphᚋmodelᚐAuditAction(ctx context.Context, sel ast.SelectionSet, v model.AuditAction) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNAuditLog2ᚕᚖbackendᚋgraphᚋmodelᚐAuditLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AuditLog) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNAuditLog2ᚖbackendᚋgraphᚋmodelᚐAuditLog(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAuditLog2ᚖbackendᚋgraphᚋmodelᚐAuditLog(ctx context.Context, sel ast.SelectionSet, v *model.AuditLog) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuditLog(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNAuthPayload2backendᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v model.AuthPayload) graphql.Marshaler {
 	return ec._AuthPayload(ctx, sel, &v)
 }
@@ -8169,6 +11890,50 @@ func (ec *executionContext) marshalNAuthPayload2ᚖbackendᚋgraphᚋmodelᚐAut
 		return graphql.Null
 	}
 	return ec._AuthPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNBoardGame2backendᚋgraphᚋmodelᚐBoardGame(ctx context.Context, sel ast.SelectionSet, v model.BoardGame) graphql.Marshaler {
+	return ec._BoardGame(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBoardGame2ᚕᚖbackendᚋgraphᚋmodelᚐBoardGameᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BoardGame) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNBoardGame2ᚖbackendᚋgraphᚋmodelᚐBoardGame(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNBoardGame2ᚖbackendᚋgraphᚋmodelᚐBoardGame(ctx context.Context, sel ast.SelectionSet, v *model.BoardGame) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BoardGame(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNBoardGameCatalogPage2backendᚋgraphᚋmodelᚐBoardGameCatalogPage(ctx context.Context, sel ast.SelectionSet, v model.BoardGameCatalogPage) graphql.Marshaler {
+	return ec._BoardGameCatalogPage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBoardGameCatalogPage2ᚖbackendᚋgraphᚋmodelᚐBoardGameCatalogPage(ctx context.Context, sel ast.SelectionSet, v *model.BoardGameCatalogPage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BoardGameCatalogPage(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
@@ -8245,6 +12010,11 @@ func (ec *executionContext) marshalNContactSubmissionNote2ᚖbackendᚋgraphᚋm
 		return graphql.Null
 	}
 	return ec._ContactSubmissionNote(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCreateBoardGameInput2backendᚋgraphᚋmodelᚐCreateBoardGameInput(ctx context.Context, v any) (model.CreateBoardGameInput, error) {
+	res, err := ec.unmarshalInputCreateBoardGameInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNCreateContactSubmissionInput2backendᚋgraphᚋmodelᚐCreateContactSubmissionInput(ctx context.Context, v any) (model.CreateContactSubmissionInput, error) {
@@ -8404,9 +12174,65 @@ func (ec *executionContext) marshalNRole2backendᚋgraphᚋmodelᚐRole(ctx cont
 	return v
 }
 
+func (ec *executionContext) marshalNRolePermission2backendᚋgraphᚋmodelᚐRolePermission(ctx context.Context, sel ast.SelectionSet, v model.RolePermission) graphql.Marshaler {
+	return ec._RolePermission(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRolePermission2ᚕᚖbackendᚋgraphᚋmodelᚐRolePermissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RolePermission) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNRolePermission2ᚖbackendᚋgraphᚋmodelᚐRolePermission(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRolePermission2ᚖbackendᚋgraphᚋmodelᚐRolePermission(ctx context.Context, sel ast.SelectionSet, v *model.RolePermission) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RolePermission(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNSignInInput2backendᚋgraphᚋmodelᚐSignInInput(ctx context.Context, v any) (model.SignInInput, error) {
 	res, err := ec.unmarshalInputSignInInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStatuteVersion2ᚕᚖbackendᚋgraphᚋmodelᚐStatuteVersionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StatuteVersion) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNStatuteVersion2ᚖbackendᚋgraphᚋmodelᚐStatuteVersion(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNStatuteVersion2ᚖbackendᚋgraphᚋmodelᚐStatuteVersion(ctx context.Context, sel ast.SelectionSet, v *model.StatuteVersion) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StatuteVersion(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
@@ -8455,6 +12281,11 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
+func (ec *executionContext) unmarshalNUpdateBoardGameInput2backendᚋgraphᚋmodelᚐUpdateBoardGameInput(ctx context.Context, v any) (model.UpdateBoardGameInput, error) {
+	res, err := ec.unmarshalInputUpdateBoardGameInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateEventInput2backendᚋgraphᚋmodelᚐUpdateEventInput(ctx context.Context, v any) (model.UpdateEventInput, error) {
 	res, err := ec.unmarshalInputUpdateEventInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8467,6 +12298,11 @@ func (ec *executionContext) unmarshalNUpdateOfferBlockInput2backendᚋgraphᚋmo
 
 func (ec *executionContext) unmarshalNUpdatePartnerInput2backendᚋgraphᚋmodelᚐUpdatePartnerInput(ctx context.Context, v any) (model.UpdatePartnerInput, error) {
 	res, err := ec.unmarshalInputUpdatePartnerInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateRolePermissionInput2backendᚋgraphᚋmodelᚐUpdateRolePermissionInput(ctx context.Context, v any) (model.UpdateRolePermissionInput, error) {
+	res, err := ec.unmarshalInputUpdateRolePermissionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -8646,6 +12482,101 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalOAdminResource2ᚖbackendᚋgraphᚋmodelᚐAdminResource(ctx context.Context, v any) (*model.AdminResource, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.AdminResource)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAdminResource2ᚖbackendᚋgraphᚋmodelᚐAdminResource(ctx context.Context, sel ast.SelectionSet, v *model.AdminResource) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOAuditAction2ᚖbackendᚋgraphᚋmodelᚐAuditAction(ctx context.Context, v any) (*model.AuditAction, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.AuditAction)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAuditAction2ᚖbackendᚋgraphᚋmodelᚐAuditAction(ctx context.Context, sel ast.SelectionSet, v *model.AuditAction) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOAuditLogQueryInput2ᚖbackendᚋgraphᚋmodelᚐAuditLogQueryInput(ctx context.Context, v any) (*model.AuditLogQueryInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAuditLogQueryInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBoardGame2ᚖbackendᚋgraphᚋmodelᚐBoardGame(ctx context.Context, sel ast.SelectionSet, v *model.BoardGame) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BoardGame(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOBoardGameCatalogFilterInput2ᚖbackendᚋgraphᚋmodelᚐBoardGameCatalogFilterInput(ctx context.Context, v any) (*model.BoardGameCatalogFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputBoardGameCatalogFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOBoardGameCatalogInput2ᚖbackendᚋgraphᚋmodelᚐBoardGameCatalogInput(ctx context.Context, v any) (*model.BoardGameCatalogInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputBoardGameCatalogInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOBoardGameDifficulty2ᚖbackendᚋgraphᚋmodelᚐBoardGameDifficulty(ctx context.Context, v any) (*model.BoardGameDifficulty, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.BoardGameDifficulty)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBoardGameDifficulty2ᚖbackendᚋgraphᚋmodelᚐBoardGameDifficulty(ctx context.Context, sel ast.SelectionSet, v *model.BoardGameDifficulty) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOBoardGameSortMode2ᚖbackendᚋgraphᚋmodelᚐBoardGameSortMode(ctx context.Context, v any) (*model.BoardGameSortMode, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.BoardGameSortMode)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBoardGameSortMode2ᚖbackendᚋgraphᚋmodelᚐBoardGameSortMode(ctx context.Context, sel ast.SelectionSet, v *model.BoardGameSortMode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8688,6 +12619,24 @@ func (ec *executionContext) marshalOEvent2ᚖbackendᚋgraphᚋmodelᚐEvent(ctx
 		return graphql.Null
 	}
 	return ec._Event(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalID(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
@@ -8736,6 +12685,13 @@ func (ec *executionContext) marshalORole2ᚖbackendᚋgraphᚋmodelᚐRole(ctx c
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOStatute2ᚖbackendᚋgraphᚋmodelᚐStatute(ctx context.Context, sel ast.SelectionSet, v *model.Statute) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Statute(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {

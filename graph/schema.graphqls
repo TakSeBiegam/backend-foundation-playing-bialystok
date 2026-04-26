@@ -5,6 +5,36 @@ enum Role {
   OWNER
 }
 
+enum AdminResource {
+  AUTH
+  DASHBOARD
+  OFFER_PAGE
+  ABOUT_US_PAGE
+  EVENTS
+  PARTNERS
+  CATALOG
+  GALLERY
+  MESSAGES
+  USERS
+  ROLE_PERMISSIONS
+  AUDIT_LOGS
+}
+
+enum AuditAction {
+  LOGIN
+  CREATE
+  UPDATE
+  DELETE
+  RESET_PASSWORD
+  ARCHIVE
+  UNARCHIVE
+  MARK_READ
+  MARK_UNREAD
+  ADD_NOTE
+  ROLE_CHANGE
+  PERMISSION_CHANGE
+}
+
 type User {
   id: ID!
   email: String
@@ -37,8 +67,32 @@ type Partner {
   description: String
 }
 
+type RolePermission {
+  role: Role!
+  resource: AdminResource!
+  canRead: Boolean!
+  canWrite: Boolean!
+  canDelete: Boolean!
+  updatedAt: String!
+  updatedBy: User
+}
+
+type AuditLog {
+  id: ID!
+  actor: User
+  actorRole: Role
+  resource: AdminResource!
+  action: AuditAction!
+  resourceId: String
+  summary: String!
+  details: String
+  createdAt: String!
+}
+
 type OfferBlock {
   id: ID!
+  pageKey: String!
+  categoryKey: String
   section: String!
   blockType: String!
   badge: String
@@ -55,6 +109,60 @@ type OfferBlock {
   order: Int!
   createdAt: String!
   updatedAt: String!
+}
+
+type Statute {
+  id: ID!
+  content: String!
+  updatedAt: String!
+}
+
+type StatuteVersion {
+  id: ID!
+  content: String!
+  summary: String
+  authorId: ID
+  createdAt: String!
+}
+
+type BoardGame {
+  id: ID!
+  title: String!
+  description: String!
+  playerBucket: String!
+  playTime: String
+  category: String
+  difficulty: BoardGameDifficulty
+  imageUrl: String
+  imageAlt: String
+  order: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum BoardGameDifficulty {
+  IMPREZOWA
+  LATWA
+  SREDNI
+  EKSPERCKA
+}
+
+enum BoardGameSortMode {
+  AZ
+  ZA
+  PLAYERS
+  ORDER
+}
+
+type BoardGameCatalogPage {
+  items: [BoardGame!]!
+  totalCount: Int!
+  hasMore: Boolean!
+  nextOffset: Int
+  categories: [String!]!
+  difficulties: [String!]!
+  catalogTotalCount: Int!
+  catalogWithImagesCount: Int!
 }
 
 type ContactSubmissionNote {
@@ -87,16 +195,24 @@ type Query {
   event(id: ID!): Event
   partners: [Partner!]!
   partner(id: ID!): Partner
-  offerBlocks(section: String): [OfferBlock!]!
+  offerBlocks(pageKey: String, section: String): [OfferBlock!]!
   offerBlock(id: ID!): OfferBlock
+  boardGames: [BoardGame!]!
+  boardGamesCatalog(input: BoardGameCatalogInput): BoardGameCatalogPage!
+  boardGame(id: ID!): BoardGame
   contactSubmissions(archived: Boolean = false): [ContactSubmission!]!
   contactSubmission(id: ID!): ContactSubmission
+  myPermissions: [RolePermission!]!
+  rolePermissions: [RolePermission!]!
+  statute: Statute
+  statuteVersions(limit: Int, offset: Int): [StatuteVersion!]!
+  auditLogs(input: AuditLogQueryInput): [AuditLog!]!
   users: [User!]!
   me: User
 }
 
 input SignInInput {
-  email: String!
+  identifier: String!
   password: String!
 }
 
@@ -134,7 +250,24 @@ input UpdatePartnerInput {
   description: String
 }
 
+input AuditLogQueryInput {
+  limit: Int = 100
+  actorId: ID
+  resource: AdminResource
+  action: AuditAction
+}
+
+input UpdateRolePermissionInput {
+  role: Role!
+  resource: AdminResource!
+  canRead: Boolean!
+  canWrite: Boolean!
+  canDelete: Boolean!
+}
+
 input CreateOfferBlockInput {
+  pageKey: String!
+  categoryKey: String
   section: String!
   blockType: String!
   badge: String
@@ -152,6 +285,8 @@ input CreateOfferBlockInput {
 }
 
 input UpdateOfferBlockInput {
+  pageKey: String
+  categoryKey: String
   section: String
   blockType: String
   badge: String
@@ -166,6 +301,47 @@ input UpdateOfferBlockInput {
   ctaHref: String
   isFeatured: Boolean
   order: Int
+}
+
+input CreateBoardGameInput {
+  title: String!
+  description: String!
+  playerBucket: String!
+  playTime: String
+  category: String
+  difficulty: BoardGameDifficulty
+  imageUrl: String
+  imageAlt: String
+  order: Int = 0
+}
+
+input UpdateBoardGameInput {
+  title: String
+  description: String
+  playerBucket: String
+  playTime: String
+  category: String
+  difficulty: BoardGameDifficulty
+  imageUrl: String
+  imageAlt: String
+  clearImageUrl: Boolean
+  clearImageAlt: Boolean
+  order: Int
+}
+
+input BoardGameCatalogFilterInput {
+  search: String
+  playerBucket: String
+  category: String
+  difficulty: String
+  difficulties: [String!]
+}
+
+input BoardGameCatalogInput {
+  filter: BoardGameCatalogFilterInput
+  sort: BoardGameSortMode
+  limit: Int
+  offset: Int
 }
 
 input CreateUserInput {
@@ -221,8 +397,13 @@ type Mutation {
   updateOfferBlock(id: ID!, input: UpdateOfferBlockInput!): OfferBlock!
   deleteOfferBlock(id: ID!): Boolean!
 
+  createBoardGame(input: CreateBoardGameInput!): BoardGame!
+  updateBoardGame(id: ID!, input: UpdateBoardGameInput!): BoardGame!
+  deleteBoardGame(id: ID!): Boolean!
+
   createUser(input: CreateUserInput!): User!
   updateUser(id: ID!, input: UpdateUserInput!): User!
   deleteUser(id: ID!): Boolean!
   resetUserPassword(id: ID!): String!
+  updateRolePermission(input: UpdateRolePermissionInput!): RolePermission!
 }
