@@ -133,25 +133,6 @@ type CreateEventInput struct {
 	ImageURL    *string `json:"imageUrl,omitempty"`
 }
 
-type CreateOfferBlockInput struct {
-	PageKey     string   `json:"pageKey"`
-	CategoryKey *string  `json:"categoryKey,omitempty"`
-	Section     string   `json:"section"`
-	BlockType   string   `json:"blockType"`
-	Badge       *string  `json:"badge,omitempty"`
-	Title       *string  `json:"title,omitempty"`
-	Subtitle    *string  `json:"subtitle,omitempty"`
-	Content     *string  `json:"content,omitempty"`
-	Items       []string `json:"items,omitempty"`
-	Highlight   *string  `json:"highlight,omitempty"`
-	ImageURL    *string  `json:"imageUrl,omitempty"`
-	ImageAlt    *string  `json:"imageAlt,omitempty"`
-	CtaLabel    *string  `json:"ctaLabel,omitempty"`
-	CtaHref     *string  `json:"ctaHref,omitempty"`
-	IsFeatured  *bool    `json:"isFeatured,omitempty"`
-	Order       *int32   `json:"order,omitempty"`
-}
-
 type CreatePartnerInput struct {
 	Name        string  `json:"name"`
 	LogoURL     *string `json:"logoUrl,omitempty"`
@@ -179,28 +160,6 @@ type Event struct {
 }
 
 type Mutation struct {
-}
-
-type OfferBlock struct {
-	ID          string   `json:"id"`
-	PageKey     string   `json:"pageKey"`
-	CategoryKey *string  `json:"categoryKey,omitempty"`
-	Section     string   `json:"section"`
-	BlockType   string   `json:"blockType"`
-	Badge       *string  `json:"badge,omitempty"`
-	Title       *string  `json:"title,omitempty"`
-	Subtitle    *string  `json:"subtitle,omitempty"`
-	Content     *string  `json:"content,omitempty"`
-	Items       []string `json:"items"`
-	Highlight   *string  `json:"highlight,omitempty"`
-	ImageURL    *string  `json:"imageUrl,omitempty"`
-	ImageAlt    *string  `json:"imageAlt,omitempty"`
-	CtaLabel    *string  `json:"ctaLabel,omitempty"`
-	CtaHref     *string  `json:"ctaHref,omitempty"`
-	IsFeatured  bool     `json:"isFeatured"`
-	Order       int32    `json:"order"`
-	CreatedAt   string   `json:"createdAt"`
-	UpdatedAt   string   `json:"updatedAt"`
 }
 
 type Partner struct {
@@ -267,25 +226,6 @@ type UpdateEventInput struct {
 	ImageURL    *string `json:"imageUrl,omitempty"`
 }
 
-type UpdateOfferBlockInput struct {
-	PageKey     *string  `json:"pageKey,omitempty"`
-	CategoryKey *string  `json:"categoryKey,omitempty"`
-	Section     *string  `json:"section,omitempty"`
-	BlockType   *string  `json:"blockType,omitempty"`
-	Badge       *string  `json:"badge,omitempty"`
-	Title       *string  `json:"title,omitempty"`
-	Subtitle    *string  `json:"subtitle,omitempty"`
-	Content     *string  `json:"content,omitempty"`
-	Items       []string `json:"items,omitempty"`
-	Highlight   *string  `json:"highlight,omitempty"`
-	ImageURL    *string  `json:"imageUrl,omitempty"`
-	ImageAlt    *string  `json:"imageAlt,omitempty"`
-	CtaLabel    *string  `json:"ctaLabel,omitempty"`
-	CtaHref     *string  `json:"ctaHref,omitempty"`
-	IsFeatured  *bool    `json:"isFeatured,omitempty"`
-	Order       *int32   `json:"order,omitempty"`
-}
-
 type UpdatePartnerInput struct {
 	Name        *string `json:"name,omitempty"`
 	LogoURL     *string `json:"logoUrl,omitempty"`
@@ -321,8 +261,6 @@ type AdminResource string
 const (
 	AdminResourceAuth            AdminResource = "AUTH"
 	AdminResourceDashboard       AdminResource = "DASHBOARD"
-	AdminResourceOfferPage       AdminResource = "OFFER_PAGE"
-	AdminResourceAboutUsPage     AdminResource = "ABOUT_US_PAGE"
 	AdminResourceEvents          AdminResource = "EVENTS"
 	AdminResourcePartners        AdminResource = "PARTNERS"
 	AdminResourceCatalog         AdminResource = "CATALOG"
@@ -336,8 +274,6 @@ const (
 var AllAdminResource = []AdminResource{
 	AdminResourceAuth,
 	AdminResourceDashboard,
-	AdminResourceOfferPage,
-	AdminResourceAboutUsPage,
 	AdminResourceEvents,
 	AdminResourcePartners,
 	AdminResourceCatalog,
@@ -350,7 +286,7 @@ var AllAdminResource = []AdminResource{
 
 func (e AdminResource) IsValid() bool {
 	switch e {
-	case AdminResourceAuth, AdminResourceDashboard, AdminResourceOfferPage, AdminResourceAboutUsPage, AdminResourceEvents, AdminResourcePartners, AdminResourceCatalog, AdminResourceGallery, AdminResourceMessages, AdminResourceUsers, AdminResourceRolePermissions, AdminResourceAuditLogs:
+	case AdminResourceAuth, AdminResourceDashboard, AdminResourceEvents, AdminResourcePartners, AdminResourceCatalog, AdminResourceGallery, AdminResourceMessages, AdminResourceUsers, AdminResourceRolePermissions, AdminResourceAuditLogs:
 		return true
 	}
 	return false

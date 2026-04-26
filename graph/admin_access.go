@@ -21,8 +21,6 @@ const (
 
 var managedAdminResources = []model.AdminResource{
 	model.AdminResourceDashboard,
-	model.AdminResourceOfferPage,
-	model.AdminResourceAboutUsPage,
 	model.AdminResourceEvents,
 	model.AdminResourcePartners,
 	model.AdminResourceCatalog,
@@ -68,22 +66,6 @@ func currentUserIDFromContext(ctx context.Context) (string, error) {
 	}
 
 	return trimmed, nil
-}
-
-func normalizeOfferBlockPageKey(value string) string {
-	if strings.EqualFold(strings.TrimSpace(value), "about-us") {
-		return "about-us"
-	}
-
-	return "offer"
-}
-
-func adminResourceForPageKey(value string) model.AdminResource {
-	if normalizeOfferBlockPageKey(value) == "about-us" {
-		return model.AdminResourceAboutUsPage
-	}
-
-	return model.AdminResourceOfferPage
 }
 
 func hasCallerRole(ctx context.Context) bool {

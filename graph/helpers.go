@@ -89,15 +89,6 @@ func normalizeNullableString(value *string) *string {
 	return &trimmed
 }
 
-func normalizeNullableOfferBlockPageKey(value *string) *string {
-	if value == nil {
-		return nil
-	}
-
-	normalized := normalizeOfferBlockPageKey(*value)
-	return &normalized
-}
-
 func normalizeOptionalString(value *string) string {
 	if value == nil {
 		return ""
@@ -276,43 +267,6 @@ func scanPartner(row rowScanner) (*model.Partner, error) {
 
 func scanPartnerRow(row pgxRows) (*model.Partner, error) {
 	return scanPartner(row)
-}
-
-func scanOfferBlock(row rowScanner) (*model.OfferBlock, error) {
-	var block model.OfferBlock
-	var createdAt, updatedAt time.Time
-	if err := row.Scan(
-		&block.ID,
-		&block.PageKey,
-		&block.CategoryKey,
-		&block.Section,
-		&block.BlockType,
-		&block.Badge,
-		&block.Title,
-		&block.Subtitle,
-		&block.Content,
-		&block.Items,
-		&block.Highlight,
-		&block.ImageURL,
-		&block.ImageAlt,
-		&block.CtaLabel,
-		&block.CtaHref,
-		&block.IsFeatured,
-		&block.Order,
-		&createdAt,
-		&updatedAt,
-	); err != nil {
-		return nil, fmt.Errorf("scan offer block: %w", err)
-	}
-
-	block.Items = cleanStringSlice(block.Items)
-	block.CreatedAt = createdAt.Format(time.RFC3339)
-	block.UpdatedAt = updatedAt.Format(time.RFC3339)
-	return &block, nil
-}
-
-func scanOfferBlockRow(row pgxRows) (*model.OfferBlock, error) {
-	return scanOfferBlock(row)
 }
 
 func scanBoardGame(row rowScanner) (*model.BoardGame, error) {

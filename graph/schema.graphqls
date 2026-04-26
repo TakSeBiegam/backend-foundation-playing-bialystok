@@ -8,8 +8,6 @@ enum Role {
 enum AdminResource {
   AUTH
   DASHBOARD
-  OFFER_PAGE
-  ABOUT_US_PAGE
   EVENTS
   PARTNERS
   CATALOG
@@ -87,28 +85,6 @@ type AuditLog {
   summary: String!
   details: String
   createdAt: String!
-}
-
-type OfferBlock {
-  id: ID!
-  pageKey: String!
-  categoryKey: String
-  section: String!
-  blockType: String!
-  badge: String
-  title: String
-  subtitle: String
-  content: String
-  items: [String!]!
-  highlight: String
-  imageUrl: String
-  imageAlt: String
-  ctaLabel: String
-  ctaHref: String
-  isFeatured: Boolean!
-  order: Int!
-  createdAt: String!
-  updatedAt: String!
 }
 
 type Statute {
@@ -195,8 +171,6 @@ type Query {
   event(id: ID!): Event
   partners: [Partner!]!
   partner(id: ID!): Partner
-  offerBlocks(pageKey: String, section: String): [OfferBlock!]!
-  offerBlock(id: ID!): OfferBlock
   boardGames: [BoardGame!]!
   boardGamesCatalog(input: BoardGameCatalogInput): BoardGameCatalogPage!
   boardGame(id: ID!): BoardGame
@@ -263,44 +237,6 @@ input UpdateRolePermissionInput {
   canRead: Boolean!
   canWrite: Boolean!
   canDelete: Boolean!
-}
-
-input CreateOfferBlockInput {
-  pageKey: String!
-  categoryKey: String
-  section: String!
-  blockType: String!
-  badge: String
-  title: String
-  subtitle: String
-  content: String
-  items: [String!] = []
-  highlight: String
-  imageUrl: String
-  imageAlt: String
-  ctaLabel: String
-  ctaHref: String
-  isFeatured: Boolean = false
-  order: Int = 0
-}
-
-input UpdateOfferBlockInput {
-  pageKey: String
-  categoryKey: String
-  section: String
-  blockType: String
-  badge: String
-  title: String
-  subtitle: String
-  content: String
-  items: [String!]
-  highlight: String
-  imageUrl: String
-  imageAlt: String
-  ctaLabel: String
-  ctaHref: String
-  isFeatured: Boolean
-  order: Int
 }
 
 input CreateBoardGameInput {
@@ -392,10 +328,6 @@ type Mutation {
   createPartner(input: CreatePartnerInput!): Partner!
   updatePartner(id: ID!, input: UpdatePartnerInput!): Partner!
   deletePartner(id: ID!): Boolean!
-
-  createOfferBlock(input: CreateOfferBlockInput!): OfferBlock!
-  updateOfferBlock(id: ID!, input: UpdateOfferBlockInput!): OfferBlock!
-  deleteOfferBlock(id: ID!): Boolean!
 
   createBoardGame(input: CreateBoardGameInput!): BoardGame!
   updateBoardGame(id: ID!, input: UpdateBoardGameInput!): BoardGame!
