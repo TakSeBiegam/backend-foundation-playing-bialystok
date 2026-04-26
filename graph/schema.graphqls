@@ -16,6 +16,7 @@ enum AdminResource {
   USERS
   ROLE_PERMISSIONS
   AUDIT_LOGS
+  PRIVACY_POLICY
 }
 
 enum AuditAction {

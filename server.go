@@ -97,6 +97,10 @@ func main() {
 	http.Handle("/statute", cors(graph.StatuteHandler(pool)))
 	http.Handle("/statute/versions", cors(graph.StatuteVersionsHandler(pool)))
 
+	// Privacy Policy REST endpoints (read and update privacy policy, list versions)
+	http.Handle("/privacy-policy", cors(graph.PrivacyPolicyHandler(pool)))
+	http.Handle("/privacy-policy/versions", cors(graph.PrivacyPolicyVersionsHandler(pool)))
+
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

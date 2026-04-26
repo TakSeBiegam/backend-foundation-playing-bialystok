@@ -269,6 +269,7 @@ const (
 	AdminResourceUsers           AdminResource = "USERS"
 	AdminResourceRolePermissions AdminResource = "ROLE_PERMISSIONS"
 	AdminResourceAuditLogs       AdminResource = "AUDIT_LOGS"
+	AdminResourcePrivacyPolicy   AdminResource = "PRIVACY_POLICY"
 )
 
 var AllAdminResource = []AdminResource{
@@ -282,11 +283,12 @@ var AllAdminResource = []AdminResource{
 	AdminResourceUsers,
 	AdminResourceRolePermissions,
 	AdminResourceAuditLogs,
+	AdminResourcePrivacyPolicy,
 }
 
 func (e AdminResource) IsValid() bool {
 	switch e {
-	case AdminResourceAuth, AdminResourceDashboard, AdminResourceEvents, AdminResourcePartners, AdminResourceCatalog, AdminResourceGallery, AdminResourceMessages, AdminResourceUsers, AdminResourceRolePermissions, AdminResourceAuditLogs:
+	case AdminResourceAuth, AdminResourceDashboard, AdminResourceEvents, AdminResourcePartners, AdminResourceCatalog, AdminResourceGallery, AdminResourceMessages, AdminResourceUsers, AdminResourceRolePermissions, AdminResourceAuditLogs, AdminResourcePrivacyPolicy:
 		return true
 	}
 	return false

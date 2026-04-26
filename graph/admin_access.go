@@ -29,6 +29,7 @@ var managedAdminResources = []model.AdminResource{
 	model.AdminResourceUsers,
 	model.AdminResourceRolePermissions,
 	model.AdminResourceAuditLogs,
+	model.AdminResourcePrivacyPolicy,
 }
 
 var managedRoles = []model.Role{
